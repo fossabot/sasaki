@@ -1,0 +1,17 @@
+[package]
+name = "sasaki"
+version = "0.0.1"
+authors = [ "Cynede <codecaves@gmail.com>" ]
+repository = "https://github.com/Cynede/sasaki"
+readme = "README.md"
+keywords = [ "discord", "bot" ]
+
+[dependencies]
+chrono = "*"
+rust-ini = "*"
+argparse = "*"
+env_logger = "*"
+serenity = { version = "*", features = ["cache", "framework", "standard_framework"] }
+
+# I don't need bd for now
+#diesel = { version = "*", features = ["sqlite", "chrono"] }
