@@ -6,7 +6,8 @@ use serenity::{
   prelude::*,
 };
 
-use rand::Rng;
+use rand::thread_rng;
+use rand::seq::SliceRandom;
 
 pub struct Handler;
 
@@ -20,33 +21,33 @@ impl EventHandler for Handler {
     info!("Resumed");
   }
   fn message(&self, _ : Context, msg : Message) {
-    //TODO: find better way to ignore myself
-    if msg.author.name != "Sasaki" {
-      if msg.content == "sasaki help" {
-        if let Err(why) = msg.channel_id.send_message(|m| m
-          .content("Sasaki help")
-          .embed(|e| e
-            .title("Sasaki")
-            .description("Sasaki:")
-            .fields(vec![
-              ("field1", "Hello", true),
-              ("field2", "I'm Sasaki", true)
-              ])
-            .field("field3", "Nice to meet you", false)
-            .footer(|f| f.text("Sasaki."))
-            .colour((246, 111, 0)))) {
-          error!("Error sending help message: {:?}", why);
-        }
-      } else {
-        letrec! { lower = msg.content.to_lowercase()
-                , lower_words = lower.split_whitespace() };
-        if let Some(find_char_in_words) = lower_words.into_iter().find(
-                  |&w| OVERWATCH.into_iter().find(|&c| c == &w).is_some()) {
-          letrec! { ov_reply = rand::thread_rng().choose(OVERWATCH_REPLIES).unwrap()
-                  , reply = format!("{} {}", ov_reply, find_char_in_words) };
-          if let Err(why) = msg.channel_id.say(reply) {
-            error!("Error sending overwatch reply: {:?}", why);
-          }
+    if msg.author.bot {
+      return
+    }
+    if msg.content == "sasaki help" {
+      if let Err(why) = msg.channel_id.send_message(|m| m
+        .embed(|e| e
+          .title("My name")
+          .description("Sasaki")
+          .fields(vec![
+            ("field1", "Hello", true),
+            ("field2", "I'm Sasaki", true)
+            ])
+          .field("field3", "Nice to meet you", false)
+          .footer(|f| f.text("Sasaki."))
+          .colour((246, 111, 0)))) {
+        error!("Error sending help message: {:?}", why);
+      }
+    } else {
+      letrec! { lower = msg.content.to_lowercase()
+              , lower_words = lower.split_whitespace() };
+      if let Some(find_char_in_words) = lower_words.into_iter().find(
+                |&w| OVERWATCH.into_iter().find(|&c| c == &w).is_some()) {
+        let mut rng = thread_rng();
+        letrec! { ov_reply = OVERWATCH_REPLIES.choose(&mut rng).unwrap()
+                , reply = format!("{} {}", ov_reply, find_char_in_words) };
+        if let Err(why) = msg.channel_id.say(reply) {
+          error!("Error sending overwatch reply: {:?}", why);
         }
       }
     }
