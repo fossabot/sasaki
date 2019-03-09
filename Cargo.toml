@@ -10,6 +10,7 @@ keywords = [ "discord", "bot" ]
 chrono = "*"
 rust-ini = "*"
 argparse = "*"
+log = "*"
 env_logger = "*"
 serenity = { version = "*", features = ["cache", "framework", "standard_framework"] }
 
