@@ -28,13 +28,13 @@ impl EventHandler for Handler {
       if let Err(why) = msg.channel_id.send_message(|m| m
         .embed(|e| e
           .title("My name")
-          .description("Sasaki")
+          .description("佐々木 優太")
           .fields(vec![
-            ("field1", "Hello", true),
-            ("field2", "I'm Sasaki", true)
+            ("Age", "15", true),
+            ("Birthdate", "December 23", true)
             ])
-          .field("field3", "Nice to meet you", false)
-          .footer(|f| f.text("Sasaki."))
+          .field("Height", "152 cm", false)
+          .footer(|f| f.text("proficient in martial arts"))
           .colour((246, 111, 0)))) {
         error!("Error sending help message: {:?}", why);
       }
