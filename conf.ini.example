@@ -2,7 +2,6 @@ encoding=utf-8
 
 [General]
 verbose=true
-filelog=true
 
 [Discord]
 token=example.token
