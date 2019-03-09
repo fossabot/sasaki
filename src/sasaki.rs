@@ -63,9 +63,7 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
   client.with_framework(StandardFramework::new()
     .configure(|c| c
       .owners(owners)
-      .prefix("~"))
-    // nothing for users at this moment
-    //.command("ping", |c| c.cmd(commands::meta::ping))
+      .prefix("#"))
     .command("ping", |c| c
       .cmd(commands::meta::ping)
       .owners_only(true))

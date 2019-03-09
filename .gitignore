@@ -7,4 +7,4 @@ Cargo.lock
 /*.db
 /*.key
 /output.log
-conf.ini.real
+conf.ini
