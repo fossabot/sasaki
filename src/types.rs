@@ -1,5 +1,4 @@
 pub struct SasakiOptions {
-  pub verbose:        bool,
-  pub filelog:        bool,
-  pub discord:        String
+  pub verbose: bool,
+  pub discord: String
 }

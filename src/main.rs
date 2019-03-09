@@ -9,12 +9,15 @@ extern crate chrono;
 extern crate argparse;
 extern crate ini;
 extern crate env_logger;
+extern crate rand;
+
 #[macro_use] extern crate log;
 #[macro_use] extern crate serenity;
 #[macro_use] pub mod macros;
 
 pub mod types;
 mod handler;
+pub mod collections;
 pub mod commands;
 mod sasaki;
 
@@ -25,14 +28,12 @@ use ini::Ini;
 fn parse_config() -> types::SasakiOptions {
   let mut options: types::SasakiOptions = types::SasakiOptions {
     verbose: true,
-    filelog: true,
     discord: String::from("")
   };
   let _and_then_there_is_useless_result =
     Ini::load_from_file(CONF_FILE_NAME)
       .and_then(|conf| Ok({
         options.verbose = conf["General"]["verbose"] == "true";
-        options.filelog = conf["General"]["filelog"] == "true";
         options.discord = conf["Discord"]["token"].to_owned();
       }));
   options

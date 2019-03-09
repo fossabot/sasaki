@@ -1,8 +1,12 @@
+use collections::overwatch::{OVERWATCH, OVERWATCH_REPLIES};
+
 use serenity::{
   model::{ event::ResumedEvent, gateway::Ready
          , channel::Message },
   prelude::*,
 };
+
+use rand::Rng;
 
 pub struct Handler;
 
@@ -30,8 +34,19 @@ impl EventHandler for Handler {
         error!("Error sending help message: {:?}", why);
       }
     } else {
-      if msg.content.contains("tracer") {
-        
+      letrec! { lower = msg.content.to_lowercase()
+              , lower_words = lower.split_whitespace() };
+      for word in lower_words {
+        for character in OVERWATCH {
+          if &word == character {
+            let ov_reply = rand::thread_rng().choose(OVERWATCH_REPLIES).unwrap();
+            let reply = format!("{} {}", ov_reply, character);
+            if let Err(why) = msg.channel_id.say(reply) {
+              error!("Error sending overwatch reply: {:?}", why);
+            }
+            break;
+          }
+        }
       }
     }
   }
