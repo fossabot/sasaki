@@ -39,13 +39,13 @@ impl EventHandler for Handler {
         error!("Error sending help message: {:?}", why);
       }
     } else {
-      letrec! { lower = msg.content.to_lowercase()
-              , lower_words = lower.split_whitespace() };
+      set! { lower = msg.content.to_lowercase()
+           , lower_words = lower.split_whitespace() };
       if let Some(find_char_in_words) = lower_words.into_iter().find(
                 |&w| OVERWATCH.into_iter().find(|&c| c == &w).is_some()) {
         let mut rng = thread_rng();
-        letrec! { ov_reply = OVERWATCH_REPLIES.choose(&mut rng).unwrap()
-                , reply = format!("{} {}", ov_reply, find_char_in_words) };
+        set! { ov_reply = OVERWATCH_REPLIES.choose(&mut rng).unwrap()
+             , reply = format!("{} {}", ov_reply, find_char_in_words) };
         if let Err(why) = msg.channel_id.say(reply) {
           error!("Error sending overwatch reply: {:?}", why);
         }

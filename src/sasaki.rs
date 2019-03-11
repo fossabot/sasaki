@@ -18,9 +18,9 @@ pub struct Version();
 
 impl IFlagAction for Version {
   fn parse_flag(&self) -> ParseResult {
-    letrec!( version = env!("CARGO_PKG_VERSION").to_string()
-           , pname = "Sasaki"
-           , version_string = format!("{} {}", pname, version) );
+    set!( version = env!("CARGO_PKG_VERSION").to_string()
+        , pname = "Sasaki"
+        , version_string = format!("{} {}", pname, version) );
     println!("{}", version_string);
     return ParseResult::Exit;
   }
@@ -63,13 +63,18 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
   client.with_framework(StandardFramework::new()
     .configure(|c| c
       .owners(owners)
-      .prefix("#"))
+      .on_mention(true)
+      .prefix("*"))
     .command("ping", |c| c
       .cmd(commands::meta::ping)
       .owners_only(true))
     .command("quit", |c| c
       .cmd(commands::owner::quit)
-      .owners_only(true)));
+      .owners_only(true))
+    .command("partners", |c| c
+      .cmd(commands::meta::partners)
+      .allowed_roles(vec!["wheel"]))
+    );
 
   client.start()
 }

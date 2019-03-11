@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! letrec {
+macro_rules! set {
   ($init:ident = $val:expr, $($lhs:ident = $rhs:expr),*) => {
       let $init = $val;
     $(
