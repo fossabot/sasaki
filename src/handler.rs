@@ -24,7 +24,8 @@ impl EventHandler for Handler {
   fn message(&self, _ : Context, msg : Message) {
     if msg.is_own() {
       return
-    } else if msg.author.bot {
+    }
+    if msg.author.bot {
       if msg.content == "EKK EKK" {
         if let Err(why) = msg.delete() {
           error!("Error deleting ekks {:?}", why);
@@ -34,7 +35,8 @@ impl EventHandler for Handler {
         }
       }
       return
-    } else {
+    }
+    {
       if let Some(find_char_in_words) = OVERWATCH.into_iter().find(|&c| {
         let regex = format!(r"(^|\W)((?i){}(?-i))($|\W)", c);
         let is_overwatch = Regex::new(regex.as_str()).unwrap();
