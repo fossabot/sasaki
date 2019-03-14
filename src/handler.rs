@@ -8,6 +8,7 @@ use serenity::{
 
 use rand::thread_rng;
 use rand::seq::SliceRandom;
+use regex::Regex;
 
 pub struct Handler;
 
@@ -34,10 +35,10 @@ impl EventHandler for Handler {
       }
       return
     } else {
-      set! { lower = msg.content.to_lowercase()
-           , lower_words = lower.split_whitespace() };
-      if let Some(find_char_in_words) = lower_words.into_iter().find(
-                |&w| OVERWATCH.into_iter().find(|&c| c == &w).is_some()) {
+      if let Some(find_char_in_words) = OVERWATCH.into_iter().find(|&c| {
+        let regex = format!(r"(^|\W)((?i){}(?-i))($|\W)", c);
+        let is_overwatch = Regex::new(regex.as_str()).unwrap();
+        is_overwatch.is_match(msg.content.as_str()) }) {
         let mut rng = thread_rng();
         set! { ov_reply = OVERWATCH_REPLIES.choose(&mut rng).unwrap()
              , reply = format!("{} {}", ov_reply, find_char_in_words) };
