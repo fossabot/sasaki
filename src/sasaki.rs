@@ -7,12 +7,22 @@ use argparse::action::{IFlagAction, ParseResult};
 
 use env_logger::Env;
 
+use serenity::prelude::Mutex;
+use serenity::client::bridge::voice::ClientVoiceManager;
 use serenity::{
   framework::StandardFramework,
   http
 };
 
+use typemap::Key;
+use std::sync::Arc;
 use std::collections::HashSet;
+
+struct VoiceManager;
+
+impl Key for VoiceManager {
+  type Value = Arc<Mutex<ClientVoiceManager>>;
+}
 
 pub struct Version();
 
@@ -39,17 +49,22 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
   }
 
   let env = Env::default()
-    .filter_or("MY_LOG_LEVEL", "trace")
+    .filter_or("MY_LOG_LEVEL", "info") // trace
     .write_style_or("MY_LOG_STYLE", "always");
 
   env_logger::init_from_env(env);
 
   if opts.verbose {
-    print!("Sasaki {} I'm waking up", env!("CARGO_PKG_VERSION").to_string());
+    info!("Sasaki {} I'm waking up", env!("CARGO_PKG_VERSION").to_string());
   }
 
   let mut client = serenity::Client::new
     (&opts.discord, Handler).expect("Error creating serenity client");
+
+  {
+    let mut data = client.data.lock();
+    data.insert::<VoiceManager>(Arc::clone(&client.voice_manager));
+  }
 
   let owners = match http::get_current_application_info() {
     Ok(info) => {

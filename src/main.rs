@@ -6,14 +6,18 @@
 //#[macro_use] extern crate diesel;
 
 extern crate chrono;
+extern crate typemap;
 extern crate argparse;
 extern crate ini;
 extern crate env_logger;
 extern crate rand;
+extern crate regex;
 
 #[macro_use] extern crate log;
 #[macro_use] extern crate serenity;
 #[macro_use] pub mod macros;
+
+extern crate curl;
 
 pub mod types;
 mod handler;

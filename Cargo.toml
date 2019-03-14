@@ -1,6 +1,6 @@
 [package]
 name = "sasaki"
-version = "0.0.3"
+version = "0.0.4"
 authors = [ "Cynede <codecaves@gmail.com>" ]
 repository = "https://github.com/Cynede/sasaki"
 readme = "README.md"
@@ -9,11 +9,14 @@ keywords = [ "discord", "bot" ]
 [dependencies]
 rand = "*"
 chrono = "*"
+typemap = "*"
 rust-ini = "*"
 argparse = "*"
 log = "*"
 env_logger = "*"
-serenity = { version = "*", features = ["cache", "framework", "standard_framework"] }
+curl = "*"
+regex = "*"
+serenity = { version = "*", features = ["cache", "framework", "standard_framework", "voice"] }
 
 # I don't need bd for now
 #diesel = { version = "*", features = ["sqlite", "chrono"] }
