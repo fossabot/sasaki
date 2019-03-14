@@ -22,23 +22,17 @@ impl EventHandler for Handler {
   }
   fn message(&self, _ : Context, msg : Message) {
     if msg.author.bot {
+      if msg.content == "EKK EKK" {
+        if let Err(why) = msg.delete() {
+          error!("Error deleting ekks {:?}", why);
+        }
+        if let Err(why) = msg.channel_id.say("EKK EKK EKK") {
+          error!("Error ekking {:?}", why);
+        }
+      }
       return
     }
-    if msg.content == "sasaki help" {
-      if let Err(why) = msg.channel_id.send_message(|m| m
-        .embed(|e| e
-          .title("My name")
-          .description("佐々木 優太")
-          .fields(vec![
-            ("Age", "15", true),
-            ("Birthdate", "December 23", true)
-            ])
-          .field("Height", "152 cm", false)
-          .footer(|f| f.text("proficient in martial arts"))
-          .colour((246, 111, 0)))) {
-        error!("Error sending help message: {:?}", why);
-      }
-    } else {
+    {
       set! { lower = msg.content.to_lowercase()
            , lower_words = lower.split_whitespace() };
       if let Some(find_char_in_words) = lower_words.into_iter().find(

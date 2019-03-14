@@ -80,9 +80,8 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
       .owners(owners)
       .on_mention(true)
       .prefix("`"))
-    .command("ping", |c| c
-      .cmd(commands::meta::ping)
-      .owners_only(true))
+    .command("help", |c| c
+      .cmd(commands::meta::help))
     .command("quit", |c| c
       .cmd(commands::owner::quit)
       .owners_only(true))

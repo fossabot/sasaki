@@ -3,8 +3,24 @@ use curl::easy::Easy;
 use std::str;
 use regex::Regex;
 
-command!(ping(_ctx, msg) {
-  let _ = msg.channel_id.say("Go away!");
+command!(help(_ctx, msg) {
+  let version = format!("Sasaki {}", env!("CARGO_PKG_VERSION").to_string());
+  if let Err(why) = msg.channel_id.send_message(|m| m
+    .embed(|e| e
+      .title("My name")
+      .description("佐々木 優太")
+      .fields(vec![
+        ("Age", "15", true),
+        ("Birthdate", "December 23", true)
+        ])
+      .fields(vec![
+        ("Height", "152 cm", true),
+        ("Version", version.as_str(), true)
+        ])
+      .footer(|f| f.text("proficient in martial arts"))
+      .colour((246, 111, 0)))) {
+    error!("Error sending help message: {:?}", why);
+  }
 });
 
 command!(partners(_ctx, msg) {
