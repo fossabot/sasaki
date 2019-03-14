@@ -21,18 +21,19 @@ impl EventHandler for Handler {
     info!("Resumed");
   }
   fn message(&self, _ : Context, msg : Message) {
-    if msg.author.bot {
+    if msg.is_own() {
+      return
+    } else if msg.author.bot {
       if msg.content == "EKK EKK" {
         if let Err(why) = msg.delete() {
           error!("Error deleting ekks {:?}", why);
         }
-        if let Err(why) = msg.channel_id.say("EKK EKK EKK") {
+        if let Err(why) = msg.channel_id.say("EKK EKK") {
           error!("Error ekking {:?}", why);
         }
       }
       return
-    }
-    {
+    } else {
       set! { lower = msg.content.to_lowercase()
            , lower_words = lower.split_whitespace() };
       if let Some(find_char_in_words) = lower_words.into_iter().find(
