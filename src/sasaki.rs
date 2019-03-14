@@ -79,7 +79,7 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
     .configure(|c| c
       .owners(owners)
       .on_mention(true)
-      .prefix("*"))
+      .prefix("`"))
     .command("ping", |c| c
       .cmd(commands::meta::ping)
       .owners_only(true))

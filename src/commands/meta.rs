@@ -34,10 +34,15 @@ command!(partners(_ctx, msg) {
       }
       let invite_content = str::from_utf8(&dst).unwrap();
 
-      let title_regex = Regex::new(r#"og:title" content="Join the (.*)!"#).unwrap();
-      let title_caps = title_regex.captures(invite_content).unwrap();
-      let title = if title_caps.len() > 0 { title_caps.get(1).map_or("", |m| m.as_str()) }
-        else { "" };
+      let mut title;
+      if split.len() > 3 {
+        title = split[3];
+      } else {
+        let title_regex = Regex::new(r#"og:title" content="Join the (.*)!"#).unwrap();
+        let title_caps = title_regex.captures(invite_content).unwrap();
+        title = if title_caps.len() > 0 { title_caps.get(1).map_or("", |m| m.as_str()) }
+          else { "" };
+      }
       //TODO: replace all html codes...
       let title_fixed = title.replace("&#39;", "'");
 
