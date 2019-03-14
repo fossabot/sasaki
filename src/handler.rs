@@ -27,7 +27,7 @@ impl EventHandler for Handler {
       return
     }
     if msg.author.bot {
-      let rnd = rand::thread_rng().gen_range(0, 1);
+      let rnd = rand::thread_rng().gen_range(0, 2);
       if rnd == 1 {
         if let Err(why) = msg.delete() {
           error!("Error deleting ekks {:?}", why);
