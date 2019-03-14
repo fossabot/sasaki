@@ -6,6 +6,7 @@ use serenity::{
   prelude::*,
 };
 
+use rand::Rng;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
 use regex::Regex;
@@ -26,11 +27,12 @@ impl EventHandler for Handler {
       return
     }
     if msg.author.bot {
-      if msg.content == "EKK EKK" {
+      let rnd = rand::thread_rng().gen_range(0, 1);
+      if rnd == 1 {
         if let Err(why) = msg.delete() {
           error!("Error deleting ekks {:?}", why);
         }
-        if let Err(why) = msg.channel_id.say("EKK EKK") {
+        if let Err(why) = msg.channel_id.say(msg.content) {
           error!("Error ekking {:?}", why);
         }
       }
