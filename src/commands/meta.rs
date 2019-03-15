@@ -19,6 +19,7 @@ command!(help(_ctx, msg) {
         ])
       .field("cage krey", "cages krey (can be used by everyone but no bots)", false)
       .field("release krey", "releases krey from cage (can be used by everyone except krey)", false)
+      .field("play <url>", "play an radio stream or youtube music", false)
       .footer(|f| f.text("proficient in martial arts, extremely cruel"))
       .colour((246, 111, 0)))) {
     error!("Error sending help message: {:?}", why);

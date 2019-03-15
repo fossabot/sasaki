@@ -27,8 +27,33 @@ impl EventHandler for Handler {
     info!("Resumed");
   }
   fn guild_member_addition(&self, _: Context, guild_id: GuildId, mut member: Member) {
-    if member.user_id() == 476270148739661835 {
-      if let Ok(guild) = guild_id.to_partial_guild() {
+    use serenity::CACHE;
+    let cache = CACHE.read();
+    if let Some(guild) = cache.guild(guild_id) {
+      let guild = guild.read();
+      if let Ok(channels) = guild.channels() {
+        let log_channel = channels.iter().find(|&(c, _)|
+          if let Some(name) = c.name() {
+            name == "log"
+          } else {
+            false
+          });
+        if let Some((_, channel)) = log_channel {
+          let user = member.user.read();
+          if let Err(why) = channel.send_message(|m| m
+            .embed(|e| {
+              let mut e = e
+                .author(|a| a.icon_url(&user.face()).name(&user.name))
+                .title("has joined");
+              if let Some(ref joined_at) = member.joined_at {
+                e = e.timestamp(joined_at);
+              } e
+          })) {
+            error!("Failed to log new user {:?}", why);
+          }
+        }
+      }
+      if member.user_id() == 476270148739661835 {
         if let Some(role) = guild.role_by_name("krey") {
           if let Err(why) = member.add_role(role) {
             error!("Failed to assign krey role to krey {:?}", why);
@@ -102,20 +127,17 @@ impl EventHandler for Handler {
         }
       }
     } else
-    if CAGE_KREY.load(Ordering::Relaxed) {
-      if msg.author.id == 476270148739661835 {
-        if msg.channel_id != 553855059767853066 {
-          if let Err(why) = msg.delete() {
-            error!("Error deleting krey msg {:?}", why);
-          }
-          if let Err(msg_why) = msg.author.dm(|m| m.content(
-            "Sorry but you can't write outside the cage, you're caged!")) {
-            error!("Failed to dm to krey: {:?}", msg_why);
-          }
+    if msg.author.id == 476270148739661835 && CAGE_KREY.load(Ordering::Relaxed) {
+      if msg.channel_id != 553855059767853066 {
+        if let Err(why) = msg.delete() {
+          error!("Error deleting krey msg {:?}", why);
+        }
+        if let Err(msg_why) = msg.author.dm(|m| m.content(
+          "Sorry but you can't write outside the cage, you're caged!")) {
+          error!("Failed to dm to krey: {:?}", msg_why);
         }
       }
-    } else
-    {
+    } else {
       if let Some(find_char_in_words) = OVERWATCH.into_iter().find(|&c| {
         let regex = format!(r"(^|\W)((?i){}(?-i))($|\W)", c);
         let is_overwatch = Regex::new(regex.as_str()).unwrap();

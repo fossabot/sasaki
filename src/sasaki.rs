@@ -1,28 +1,21 @@
 use types::SasakiOptions;
 use handler::Handler;
+
 use commands;
+use commands::voice::VoiceManager;
 
 use argparse::{ArgumentParser, StoreTrue};
 use argparse::action::{IFlagAction, ParseResult};
 
 use env_logger::Env;
 
-use serenity::prelude::Mutex;
-use serenity::client::bridge::voice::ClientVoiceManager;
 use serenity::{
   framework::StandardFramework,
   http
 };
 
-use typemap::Key;
-use std::sync::Arc;
 use std::collections::HashSet;
-
-struct VoiceManager;
-
-impl Key for VoiceManager {
-  type Value = Arc<Mutex<ClientVoiceManager>>;
-}
+use std::sync::Arc;
 
 pub struct Version();
 
@@ -79,7 +72,8 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
     .configure(|c| c
       .owners(owners)
       .on_mention(true)
-      .prefix("`"))
+      .prefix("`")
+      .case_insensitivity(true))
     .command("help", |c| c
       .cmd(commands::meta::help))
     .command("quit", |c| c
@@ -88,6 +82,10 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
     .command("partners", |c| c
       .cmd(commands::meta::partners)
       .allowed_roles(vec!["wheel"]))
+    .group("voice commands", |g| g
+      .cmd("join", commands::voice::join)
+      .cmd("leave", commands::voice::leave)
+      .cmd("play", commands::voice::play))
     );
 
   client.start()
