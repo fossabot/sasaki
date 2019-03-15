@@ -4,7 +4,8 @@ use serenity::model::guild::Member;
 use serenity::model::id::GuildId;
 use serenity::{
   model::{ event::ResumedEvent, gateway::Ready
-         , channel::Message },
+         , channel::Message
+         , event::MessageUpdateEvent },
   prelude::*,
 };
 
@@ -60,6 +61,12 @@ impl EventHandler for Handler {
           }
         }
       }
+    }
+  }
+  fn message_update(&self, _ctx: Context, new_data: MessageUpdateEvent) {
+    // wait for new serenity release
+    if let Err(why) = new_data.channel_id.say("n o  e d i t i n g") {
+      error!("Error sending overwatch reply: {:?}", why);
     }
   }
   fn message(&self, _ : Context, msg : Message) {
