@@ -21,6 +21,7 @@ command!(help(_ctx, msg) {
   if let Err(why) = msg.channel_id.send_message(|m| m
     .embed(|e| e
       .title("My name")
+      .thumbnail("https://i.pinimg.com/originals/6d/0a/c9/6d0ac96e60b45dc429b224909086f993.jpg")
       .description("佐々木 優太")
       .fields(vec![
         ("Age", "15", true),
@@ -33,6 +34,7 @@ command!(help(_ctx, msg) {
       .field("cage krey", "cages krey (can be used by everyone but no bots)", false)
       .field("release krey", "releases krey from cage (can be used by everyone except krey)", false)
       .field("play <url>", "play an radio stream or youtube music", false)
+      .field("ping", "latency check", false)
       .footer(|f| f.text("proficient in martial arts, extremely cruel"))
       .colour((246, 111, 0)))) {
     error!("Error sending help message: {:?}", why);
