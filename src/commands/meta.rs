@@ -2,6 +2,19 @@ use rand::Rng;
 use curl::easy::Easy;
 use std::str;
 use regex::Regex;
+use std::sync::Arc;
+use typemap::Key;
+
+use serenity::{
+    client::bridge::gateway::{ShardId, ShardManager},
+    prelude::*,
+};
+
+pub struct ShardManagerContainer;
+
+impl Key for ShardManagerContainer {
+  type Value = Arc<Mutex<ShardManager>>;
+}
 
 command!(help(_ctx, msg) {
   let version = format!("Sasaki {}", env!("CARGO_PKG_VERSION").to_string());
@@ -23,6 +36,37 @@ command!(help(_ctx, msg) {
       .footer(|f| f.text("proficient in martial arts, extremely cruel"))
       .colour((246, 111, 0)))) {
     error!("Error sending help message: {:?}", why);
+  }
+});
+
+command!(ping(ctx, msg, _args) {
+  let data = ctx.data.lock();
+
+  let shard_manager = match data.get::<ShardManagerContainer>() {
+    Some(v) => v,
+    None => {
+      if let Err(why) = msg.author.dm(|m| m.content("There was a problem getting the shard manager")) {
+        error!("Error DMing user: {:?}", why);
+      }
+      return Ok(());
+    },
+  };
+
+  let manager = shard_manager.lock();
+  let runners = manager.runners.lock();
+
+  let runner = match runners.get(&ShardId(ctx.shard_id)) {
+    Some(runner) => runner,
+    None => {
+      if let Err(why) = msg.author.dm(|m| m.content("No shard found")) {
+        error!("Error DMing user: {:?}", why);
+      }
+      return Ok(());
+    },
+  };
+
+  if let Err(why) = msg.reply(&format!("The shard ping is {:?}", runner.latency)) {
+    error!("Error posting ping: {:?}", why);
   }
 });
 

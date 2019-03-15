@@ -3,6 +3,7 @@ use handler::Handler;
 
 use commands;
 use commands::voice::VoiceManager;
+use commands::meta::ShardManagerContainer;
 
 use argparse::{ArgumentParser, StoreTrue};
 use argparse::action::{IFlagAction, ParseResult};
@@ -57,6 +58,7 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
   {
     let mut data = client.data.lock();
     data.insert::<VoiceManager>(Arc::clone(&client.voice_manager));
+    data.insert::<ShardManagerContainer>(Arc::clone(&client.shard_manager));
   }
 
   let owners = match http::get_current_application_info() {
@@ -74,8 +76,8 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
       .on_mention(true)
       .prefix("`")
       .case_insensitivity(true))
-    .command("help", |c| c
-      .cmd(commands::meta::help))
+    .cmd("help", commands::meta::help)
+    .cmd("ping", commands::meta::ping)
     .command("quit", |c| c
       .cmd(commands::owner::quit)
       .owners_only(true))

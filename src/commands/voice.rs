@@ -16,7 +16,7 @@ impl Key for VoiceManager {
 }
 
 fn dm(msg : &Message, text: &str) {
-  if let Err(why) =msg.author.dm(|m| m.content(text)) {
+  if let Err(why) = msg.author.dm(|m| m.content(text)) {
     error!("Error DMing user: {:?}", why);
   }
 }
