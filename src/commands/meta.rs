@@ -17,18 +17,15 @@ command!(help(_ctx, msg) {
         ("Height", "152 cm", true),
         ("Version", version.as_str(), true)
         ])
-      .footer(|f| f.text("proficient in martial arts"))
+      .field("cage krey", "cages krey (can be used by everyone but no bots)", false)
+      .field("release krey", "releases krey from cage (can be used by everyone except krey)", false)
+      .footer(|f| f.text("proficient in martial arts, extremely cruel"))
       .colour((246, 111, 0)))) {
     error!("Error sending help message: {:?}", why);
   }
 });
 
 command!(partners(_ctx, msg) {
-  /*
-  if let Err(msg_why) = msg.author.dm(|m| m.content("Posted!")) {
-    error!("Failed to dm to partners request author: {:?}", msg_why);
-  }
-  */
   let lines : Vec<&str> = msg.content.lines().collect();
   for line in lines {
     let split : Vec<&str> = line.split('|').collect();
