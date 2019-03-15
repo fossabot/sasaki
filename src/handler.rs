@@ -42,13 +42,19 @@ impl EventHandler for Handler {
       return
     }
     if msg.author.bot {
-      let rnd = rand::thread_rng().gen_range(0, 2);
-      if rnd == 1 {
+      if CAGE_KREY.load(Ordering::Relaxed) && msg.content.contains("n o   r e m o v i n g") {
         if let Err(why) = msg.delete() {
-          error!("Error deleting ekks {:?}", why);
+          error!("Error deleting no removing {:?}", why);
         }
-        if let Err(why) = msg.channel_id.say(msg.content) {
-          error!("Error ekking {:?}", why);
+      } else {
+        let rnd = rand::thread_rng().gen_range(0, 2);
+        if rnd == 1 {
+          if let Err(why) = msg.delete() {
+            error!("Error deleting ekks {:?}", why);
+          }
+          if let Err(why) = msg.channel_id.say(msg.content) {
+            error!("Error ekking {:?}", why);
+          }
         }
       }
       return
