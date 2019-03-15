@@ -64,13 +64,24 @@ impl EventHandler for Handler {
     }
   }
   fn message_update(&self, _ctx: Context, new_data: MessageUpdateEvent) {
+    // they do it too!
+    if let Some(author) = new_data.author {
+      if author.bot {
+        return;
+      }
+    }
     // wait for new serenity release
     if let Err(why) = new_data.channel_id.say("n o  e d i t i n g") {
       error!("Error sending overwatch reply: {:?}", why);
     }
   }
-  fn message(&self, _ : Context, msg : Message) {
+  fn message(&self, _ : Context, mut msg : Message) {
     if msg.is_own() {
+      if msg.content == "pong" {
+        if let Err(why) = msg.edit(|m| m.content("🅱enis!")) {
+          error!("Failed to Benis {:?}", why);
+        }
+      }
       return
     }
     if msg.author.bot {
@@ -81,7 +92,7 @@ impl EventHandler for Handler {
       } else {
         // 1 of 3 will be replaced
         let rnd = rand::thread_rng().gen_range(0, 3);
-        if rnd == 1 {
+        if rnd == 1 || msg.content == "pong" {
           if let Err(why) = msg.delete() {
             error!("Error deleting ekks {:?}", why);
           }
