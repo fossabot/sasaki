@@ -62,7 +62,7 @@ command!(partners(_ctx, msg) {
       //TODO: replace all html codes...
       let title_fixed = title.replace("&#39;", "'");
 
-      let invite_regex = Regex::new(r#"og:image" content="(.*)\?size="#).unwrap();
+      let invite_regex = Regex::new(r#"meta name="twitter:image" content="(.*)\?size="#).unwrap();
       let caps = invite_regex.captures(invite_content).unwrap();
       let thumbnail = if caps.len() > 0 { caps.get(1).map_or("", |m| m.as_str()) }
         else { "https://discordapp.com/assets/2c21aeda16de354ba5334551a883b481.png" };
