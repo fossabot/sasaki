@@ -79,7 +79,8 @@ impl EventHandler for Handler {
           error!("Error deleting no removing {:?}", why);
         }
       } else {
-        let rnd = rand::thread_rng().gen_range(0, 2);
+        // 1 of 3 will be replaced
+        let rnd = rand::thread_rng().gen_range(0, 3);
         if rnd == 1 {
           if let Err(why) = msg.delete() {
             error!("Error deleting ekks {:?}", why);
