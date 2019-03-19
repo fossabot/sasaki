@@ -1,3 +1,5 @@
+use commands::voice;
+
 use collections::overwatch::{OVERWATCH, OVERWATCH_REPLIES};
 
 use serenity::{
@@ -25,8 +27,9 @@ const CAGE_ID : u64 = 553855059767853066;
 pub struct Handler;
 
 impl EventHandler for Handler {
-  fn ready(&self, _ : Context, ready : Ready) {
+  fn ready(&self, ctx : Context, ready : Ready) {
     info!("Connected as {}", ready.user.name);
+    voice::rejoin_voice_channel(&ctx);
   }
   fn resume(&self, _ : Context, _ : ResumedEvent) {
     info!("Resumed");

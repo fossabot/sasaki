@@ -1,8 +1,11 @@
+use conf;
+
 use serenity::{
-  model::{ channel::Message, misc::Mentionable },
+  model::{ channel::Message, misc::Mentionable
+         , id::GuildId, id::ChannelId },
   client::{ CACHE, bridge::voice::ClientVoiceManager },
   voice,
-  prelude::Mutex
+  prelude::*
 };
 
 use std::sync::Arc;
@@ -17,6 +20,37 @@ impl Key for VoiceManager {
 fn dm(msg : &Message, text: &str) {
   if let Err(why) = msg.author.dm(|m| m.content(text)) {
     error!("Error DMing user: {:?}", why);
+  }
+}
+
+pub fn rejoin_voice_channel(ctx : &Context) {
+  let conf = conf::parse_config();
+  if conf.rejoin {
+    set!{ last_guild_u64 = conf.last_guild.parse::<u64>().unwrap_or(0)
+        , last_channel_u64 = conf.last_channel.parse::<u64>().unwrap_or(0) };
+    if last_guild_u64 != 0 && last_channel_u64 != 0 {
+      set!{ last_guild_conf = GuildId( last_guild_u64 )
+          , last_channel_conf = ChannelId( last_channel_u64 ) };
+      let manager_lock = ctx.data.lock().get::<VoiceManager>().cloned().unwrap();
+      let mut manager = manager_lock.lock();
+      if manager.join(last_guild_conf, last_channel_conf).is_some() {
+        info!("Rejoined voice channel: {}", last_channel_conf);
+        if conf.last_stream != "" {
+          if let Some(handler) = manager.get_mut(last_guild_conf) {
+            let source = match voice::ytdl(&conf.last_stream) {
+              Ok(source) => source,
+              Err(why) => {
+                error!("Err starting source: {:?}", why);
+                return ();
+              }
+            };
+            handler.play(source);
+          }
+        }
+      } else {
+        error!("Failed to rejoin voice channel: {}", last_channel_conf);
+      }
+    }
   }
 }
 
@@ -43,6 +77,14 @@ command!(join(ctx, msg) {
   let mut manager_lock = ctx.data.lock().get::<VoiceManager>().cloned().unwrap();
   let mut manager = manager_lock.lock();
   if manager.join(guild_id, connect_to).is_some() {
+    let mut conf = conf::parse_config();
+    let last_guild_conf = GuildId( conf.last_guild.parse::<u64>().unwrap_or(0) );
+    let last_channel_conf = ChannelId( conf.last_channel.parse::<u64>().unwrap_or(0) );
+    if last_guild_conf != guild_id || last_channel_conf != connect_to {
+      conf.last_guild = format!("{}", guild_id);
+      conf.last_channel = format!("{}", connect_to);
+      conf::write_config(&conf);
+    }
     dm(msg, &format!("Joined {}", connect_to.mention()));
   } else {
     dm(msg, "Error joining the channel");
@@ -99,7 +141,13 @@ command!(play(ctx, msg, args) {
       }
     };
     handler.play(source);
-    dm(msg, "Playing song");
+    let mut conf = conf::parse_config();
+    let last_stream_conf = conf.last_stream;
+    if last_stream_conf != url {
+      conf.last_stream = url;
+      conf::write_config(&conf);
+    }
+    dm(msg, "Playing stream!");
   } else {
     dm(msg, "Not in a voice channel to play in");
   }

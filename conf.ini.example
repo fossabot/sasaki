@@ -5,3 +5,9 @@ verbose=true
 
 [Discord]
 token=example.token
+
+[Music]
+rejoin=true
+last_guild=
+last_channel=
+last_stream=
