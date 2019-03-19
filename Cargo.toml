@@ -1,6 +1,6 @@
 [package]
 name = "sasaki"
-version = "0.1.0"
+version = "0.1.1"
 authors = [ "Cynede <codecaves@gmail.com>" ]
 repository = "https://github.com/Cynede/sasaki"
 readme = "README.md"

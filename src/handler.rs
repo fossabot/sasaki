@@ -1,22 +1,26 @@
 use collections::overwatch::{OVERWATCH, OVERWATCH_REPLIES};
 
-use serenity::model::guild::Member;
-use serenity::model::id::GuildId;
 use serenity::{
-  model::{ event::ResumedEvent, gateway::Ready
-         , channel::Message
+  model::{ event::ResumedEvent, gateway::Ready, guild::Member
+         , channel::Message, id::GuildId
          , event::MessageUpdateEvent },
   prelude::*,
 };
 
-use rand::Rng;
-use rand::thread_rng;
-use rand::seq::SliceRandom;
+use rand::{
+  Rng,
+  thread_rng,
+  seq::SliceRandom
+};
+
 use regex::Regex;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
+//TODO: remove or move krey functionality
 static CAGE_KREY : AtomicBool = AtomicBool::new(false);
+const KREY_ID : u64 = 476270148739661835;
+const CAGE_ID : u64 = 553855059767853066;
 
 pub struct Handler;
 
@@ -54,7 +58,7 @@ impl EventHandler for Handler {
           }
         }
       }
-      if member.user_id() == 476270148739661835 {
+      if member.user_id() == KREY_ID {
         if let Some(role) = guild.role_by_name("krey") {
           if let Err(why) = member.add_role(role) {
             error!("Failed to assign krey role to krey {:?}", why);
@@ -71,9 +75,11 @@ impl EventHandler for Handler {
       }
     }
     // wait for new serenity release
+    /* that was just a test!
     if let Err(why) = new_data.channel_id.say("n o  e d i t i n g") {
       error!("Error sending overwatch reply: {:?}", why);
     }
+    */
   }
   fn message(&self, _ : Context, mut msg : Message) {
     if msg.is_own() {
@@ -122,7 +128,7 @@ impl EventHandler for Handler {
       }
     }
     if msg.content == "release krey" {
-      if msg.author.id != 476270148739661835 {
+      if msg.author.id != KREY_ID {
         CAGE_KREY.store(false, Ordering::Relaxed);
         if let Err(msg_why) = msg.author.dm(|m| m.content(
           "Krey is released! use 'cage krey' command to cage again")) {
@@ -146,8 +152,8 @@ impl EventHandler for Handler {
         }
       }
     } else
-    if msg.author.id == 476270148739661835 && CAGE_KREY.load(Ordering::Relaxed) {
-      if msg.channel_id != 553855059767853066 {
+    if msg.author.id == KREY_ID && CAGE_KREY.load(Ordering::Relaxed) {
+      if msg.channel_id != CAGE_ID {
         if let Err(why) = msg.delete() {
           error!("Error deleting krey msg {:?}", why);
         }

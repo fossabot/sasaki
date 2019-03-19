@@ -1,10 +1,9 @@
-use serenity::client::{CACHE};
-use serenity::model::channel::Message;
-use serenity::model::misc::Mentionable;
-
-use serenity::voice;
-use serenity::prelude::Mutex;
-use serenity::client::bridge::voice::ClientVoiceManager;
+use serenity::{
+  model::{ channel::Message, misc::Mentionable },
+  client::{ CACHE, bridge::voice::ClientVoiceManager },
+  voice,
+  prelude::Mutex
+};
 
 use std::sync::Arc;
 use typemap::Key;
