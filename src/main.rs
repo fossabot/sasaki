@@ -9,6 +9,7 @@ extern crate ini;
 extern crate env_logger;
 extern crate rand;
 extern crate regex;
+extern crate serde_json;
 
 #[macro_use] extern crate log;
 #[macro_use] extern crate serenity;

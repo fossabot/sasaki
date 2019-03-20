@@ -5,9 +5,11 @@ use regex::Regex;
 use std::sync::Arc;
 use typemap::Key;
 
+use serde_json::{Value};
+
 use serenity::{
-    client::bridge::gateway::{ShardId, ShardManager},
-    prelude::*,
+  client::bridge::gateway::{ShardId, ShardManager},
+  prelude::*,
 };
 
 pub struct ShardManagerContainer;
@@ -74,12 +76,15 @@ command!(ping(ctx, msg, _args) {
 
 command!(partners(_ctx, msg) {
   let lines : Vec<&str> = msg.content.lines().collect();
+  if let Err(why) = msg.delete() {
+    error!("Error deleting no removing {:?}", why);
+  }
   for line in lines {
     let split : Vec<&str> = line.split('|').collect();
-    if split.len() > 2 {
-      let mut partner_description  = split[0];
-      set! { partner_owner        = split[1]
-           , partner_invite       = split[2] };
+    if split.len() > 1 {
+      set! { partner_description  = split[0]
+           , partner_invite       = split[1] };
+
       let mut easy = Easy::new();
       let app_invite = String::from("https://discordapp.com/invite/") + partner_invite;
       easy.url(app_invite.as_str()).expect("Failed to curl the invite");
@@ -94,36 +99,7 @@ command!(partners(_ctx, msg) {
       }
       let invite_content = str::from_utf8(&dst).unwrap();
 
-      let mut title;
-      if split.len() > 3 {
-        title = split[3];
-      } else {
-        let title_regex = Regex::new(r#"og:title" content="Join the (.*)!"#).unwrap();
-        let title_caps = title_regex.captures(invite_content).unwrap();
-        title = if title_caps.len() > 0 { title_caps.get(1).map_or("", |m| m.as_str()) }
-          else { "" };
-      }
-      //TODO: replace all html codes...
-      let title_fixed = title.replace("&#39;", "'");
-
-      let invite_regex = Regex::new(r#"meta name="twitter:image" content="(.*)\?size="#).unwrap();
-      let caps = invite_regex.captures(invite_content).unwrap();
-      let thumbnail = if caps.len() > 0 { caps.get(1).map_or("", |m| m.as_str()) }
-        else { "https://discordapp.com/assets/2c21aeda16de354ba5334551a883b481.png" };
-
       let invite_link = String::from("https://discord.gg/") + partner_invite;
-
-      set! { desc_regex = Regex::new(r#"og:description" content="(.*) \|"#).unwrap()
-           , desc_caps = desc_regex.captures(invite_content) };
-      let description =
-        match desc_caps {
-          Some(x) => if x.len() > 0 { x.get(1).map_or("", |m| m.as_str()) } else { "" },
-          None    => {
-            let temp = partner_description;
-            partner_description = "-";
-            temp
-          }
-       };
 
       set! { mc_regex = Regex::new(r#"\| (.*) members"#).unwrap()
            , mc_caps = mc_regex.captures(invite_content) };
@@ -145,21 +121,69 @@ command!(partners(_ctx, msg) {
       set! { red    = rand::thread_rng().gen_range(0, 255)
            , green  = rand::thread_rng().gen_range(0, 255)
            , blue   = rand::thread_rng().gen_range(0, 255) };
-      if let Err(why) = msg.channel_id.send_message(|m| m
-        //.content(partner_invite)
+
+      let mut easy_v7 = Easy::new();
+      let app_invite_v7 = String::from("https://discordapp.com/api/v7/invites/") + partner_invite;
+      easy_v7.url(app_invite_v7.as_str()).expect("Failed to curl the invite v7");
+      let mut dst_v7 = Vec::<u8>::new();
+      {
+        let mut transfer = easy_v7.transfer();
+        transfer.write_function(|data| {
+          dst_v7.extend_from_slice(data);
+          Ok(data.len())
+        }).unwrap();
+        transfer.perform().unwrap();
+      }
+      let invite_content_v7 = str::from_utf8(&dst_v7).unwrap();
+      let v : Value = serde_json::from_str(invite_content_v7).unwrap();
+
+      let inviter_val = &v["inviter"];
+      let inviter : Value = serde_json::from_value(inviter_val.clone()).unwrap();
+
+      let guild_val = &v["guild"];
+      let guild : Value = serde_json::from_value(guild_val.clone()).unwrap();
+
+      let username_val = &inviter["username"];
+      let username = username_val.as_str().unwrap_or("-");
+
+      let user_id = &inviter["id"].as_str().unwrap_or("");
+      let avatar_id = &inviter["avatar"].as_str().unwrap_or("");
+      let avatar_link = format!("https://cdn.discordapp.com/avatars/{}/{}.png", user_id, avatar_id);
+
+      let title = &guild["name"].as_str().unwrap_or("-");
+
+      let guild_id = &guild["id"].as_str().unwrap_or("");
+      let icon_hash = &guild["icon"].as_str().unwrap_or("");
+      let guild_icon = format!("https://cdn.discordapp.com/icons/{}/{}.png", guild_id, icon_hash);
+
+      if let Err(why) = if split.len() > 2 {
+        let image = split[2];
+        msg.channel_id.send_message(|m| m
         .embed(|e| e
-          .title(title_fixed)
-          .thumbnail(thumbnail)
-          .description(description)
-          .fields(vec![
-            ("Owner", partner_owner, true),
-            ("Invite", invite_link.as_str(), true)
-            ])
+          .author(|a| {a.name(username).icon_url(avatar_link.as_str())})
+          .title(title)
+          .thumbnail(guild_icon)
+          .image(image)
+          .url(invite_link.as_str())
+          .description(partner_description)
           .fields(vec![
             ("Members", members, true),
-            ("Note", partner_description, true)
+            ("Invite link", invite_link.as_str(), true)
             ])
-          .colour((red, green, blue)))) {
+          .colour((red, green, blue)))) } else {
+            msg.channel_id.send_message(|m| m
+            .embed(|e| e
+              .author(|a| {a.name(username).icon_url(avatar_link.as_str())})
+              .title(title)
+              .thumbnail(guild_icon)
+              .url(invite_link.as_str())
+              .description(partner_description)
+              .fields(vec![
+                ("Members", members, true),
+                ("Invite link", invite_link.as_str(), true)
+                ])
+              .colour((red, green, blue))))
+          } {
         error!("Error posting partner: {:?}", why);
       }
     }
