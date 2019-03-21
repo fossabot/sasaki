@@ -15,13 +15,17 @@ extern crate serde_json;
 #[macro_use] extern crate serenity;
 #[macro_use] pub mod macros;
 
+/*#[macro_use]*/ extern crate diesel_codegen;
+#[macro_use] extern crate diesel;
+
 extern crate curl;
 
 pub mod conf;
 pub mod types;
-mod handler;
+pub mod db;
 pub mod collections;
 pub mod commands;
+mod handler;
 mod sasaki;
 
 fn main() {

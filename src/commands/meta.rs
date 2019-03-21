@@ -37,6 +37,7 @@ command!(help(_ctx, msg) {
       .field("release krey", "releases krey from cage (can be used by everyone except krey)", false)
       .field("play <url>", "play an radio stream or youtube music", false)
       .field("ping", "latency check", false)
+      .field("register @user", "register an user or many users into CockroachDB cluster", false)
       .footer(|f| f.text("proficient in martial arts, extremely cruel"))
       .colour((246, 111, 0)))) {
     error!("Error sending help message: {:?}", why);
@@ -77,7 +78,7 @@ command!(ping(ctx, msg, _args) {
 command!(partners(_ctx, msg) {
   let lines : Vec<&str> = msg.content.lines().collect();
   if let Err(why) = msg.delete() {
-    error!("Error deleting no removing {:?}", why);
+    error!("Error deleting partners table {:?}", why);
   }
   for line in lines {
     let split : Vec<&str> = line.split('|').collect();

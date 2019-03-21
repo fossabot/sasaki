@@ -88,6 +88,9 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
       .cmd("join", commands::voice::join)
       .cmd("leave", commands::voice::leave)
       .cmd("play", commands::voice::play))
+    .group("cockroachDB", |g| g
+      .allowed_roles(vec!["wheel"])
+      .cmd("register", commands::cockroach::register))
     );
 
   client.start()
