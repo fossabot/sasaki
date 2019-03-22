@@ -10,6 +10,7 @@ extern crate env_logger;
 extern crate rand;
 extern crate regex;
 extern crate serde_json;
+extern crate ssh2;
 
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate log;

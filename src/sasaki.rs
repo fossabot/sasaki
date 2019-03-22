@@ -84,6 +84,9 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
     .command("shell", |c| c
       .cmd(commands::owner::shell)
       .owners_only(true))
+    .command("ssh", |c| c
+      .cmd(commands::owner::ssh)
+      .owners_only(true))
     .command("quit", |c| c
       .cmd(commands::owner::quit)
       .owners_only(true))

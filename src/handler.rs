@@ -1,6 +1,7 @@
 use commands::voice;
-use data::{DATA, DataField, SHELL_MODE};
+use data::{DATA, DataField, SHELL_MODE, SSH_MODE, SSH_SESSION};
 use std::sync::atomic::{Ordering};
+use std::io::prelude::*;
 use db;
 use conf;
 
@@ -133,8 +134,32 @@ impl EventHandler for Handler {
             }
           }
         }
-      } else
-      if let Some(find_char_in_words) = OVERWATCH.into_iter().find(|&c| {
+      } else if SSH_MODE.load(Ordering::Relaxed) && msg.content.starts_with("~") {
+        if let Ok(data) = DATA.lock() {
+          if let Some(owner) = data.get(&DataField::Owner) {
+            let conf = conf::parse_config();
+            if let Ok(owner_u64) = conf.owner.parse::<u64>() {
+              if msg.author.id.as_u64() == owner && &owner_u64 == owner {
+                if msg.is_private() {
+                  if let Ok(mut sess) = SSH_SESSION.lock() {
+                    let cmd = &msg.content[1..];
+                    let mut channel = sess.channel_session().unwrap();
+                    channel.exec(cmd).unwrap();
+                    let mut s = String::new();
+                    channel.read_to_string(&mut s).unwrap();
+                    let formatted_out = format!("```\n{}\n```\n", s);
+                    if let Err(why) = msg.author.dm(|m| m.content(formatted_out)) {
+                      error!("Error sending dm: {:?}", why);
+                    }
+                    //let _ = channel.wait_close();
+                    //info!("{}", channel.exit_status().unwrap());
+                  }
+                }
+              }
+            }
+          }
+        }
+      } else if let Some(find_char_in_words) = OVERWATCH.into_iter().find(|&c| {
         let regex = format!(r"(^|\W)((?i){}(?-i))($|\W)", c);
         let is_overwatch = Regex::new(regex.as_str()).unwrap();
         is_overwatch.is_match(msg.content.as_str()) }) {
@@ -143,6 +168,16 @@ impl EventHandler for Handler {
              , reply = format!("{} {}", ov_reply, find_char_in_words) };
         if let Err(why) = msg.channel_id.say(reply) {
           error!("Error sending overwatch reply: {:?}", why);
+        }
+      } else {
+        let regex_no_u = Regex::new(r"(^|\W)((?i)no u(?-i))($|\W)").unwrap();
+        if regex_no_u.is_match(msg.content.as_str()) {
+          let rnd = rand::thread_rng().gen_range(0, 2);
+          if rnd == 1 {
+            if let Err(why) = msg.channel_id.say("No u") {
+              error!("Error sending no u reply: {:?}", why);
+            }
+          }
         }
       }
     }
