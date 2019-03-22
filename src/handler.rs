@@ -1,4 +1,8 @@
 use commands::voice;
+use data::{DATA, DataField, SHELL_MODE};
+use std::sync::atomic::{Ordering};
+use db;
+use conf;
 
 use collections::overwatch::{OVERWATCH, OVERWATCH_REPLIES};
 
@@ -17,13 +21,6 @@ use rand::{
 
 use regex::Regex;
 
-use std::sync::atomic::{AtomicBool, Ordering};
-
-//TODO: remove or move krey functionality
-static CAGE_KREY : AtomicBool = AtomicBool::new(false);
-const KREY_ID : u64 = 476270148739661835;
-const CAGE_ID : u64 = 553855059767853066;
-
 pub struct Handler;
 
 impl EventHandler for Handler {
@@ -39,6 +36,11 @@ impl EventHandler for Handler {
     let cache = CACHE.read();
     if let Some(guild) = cache.guild(guild_id) {
       let guild = guild.read();
+      if let Some(role) = db::reset_role(member.user_id(), guild_id) {
+        if let Err(why) = member.add_role(role) {
+          error!("Failed to reset role for user {:?}", why);
+        }
+      }
       if let Ok(channels) = guild.channels() {
         let log_channel = channels.iter().find(|&(c, _)|
           if let Some(name) = c.name() {
@@ -52,19 +54,12 @@ impl EventHandler for Handler {
             .embed(|e| {
               let mut e = e
                 .author(|a| a.icon_url(&user.face()).name(&user.name))
-                .title("has joined");
+                .title("has joined!");
               if let Some(ref joined_at) = member.joined_at {
                 e = e.timestamp(joined_at);
               } e
           })) {
             error!("Failed to log new user {:?}", why);
-          }
-        }
-      }
-      if member.user_id() == KREY_ID {
-        if let Some(role) = guild.role_by_name("krey") {
-          if let Err(why) = member.add_role(role) {
-            error!("Failed to assign krey role to krey {:?}", why);
           }
         }
       }
@@ -86,7 +81,7 @@ impl EventHandler for Handler {
   }
   fn message(&self, _ : Context, mut msg : Message) {
     if msg.is_own() {
-      if msg.content == "pong" {
+      if msg.content.to_lowercase() == "pong" {
         if let Err(why) = msg.edit(|m| m.content("🅱enis!")) {
           error!("Failed to Benis {:?}", why);
         }
@@ -94,78 +89,51 @@ impl EventHandler for Handler {
       return
     }
     if msg.author.bot {
-      if CAGE_KREY.load(Ordering::Relaxed) && msg.content.contains("n o   r e m o v i n g") {
+      // 1 of 3 will be replaced
+      let rnd = rand::thread_rng().gen_range(0, 3);
+      if rnd == 1 || msg.content == "pong" {
         if let Err(why) = msg.delete() {
-          error!("Error deleting no removing {:?}", why);
+          error!("Error deleting ekks {:?}", why);
         }
-      } else {
-        // 1 of 3 will be replaced
-        let rnd = rand::thread_rng().gen_range(0, 3);
-        if rnd == 1 || msg.content == "pong" {
-          if let Err(why) = msg.delete() {
-            error!("Error deleting ekks {:?}", why);
-          }
-          if let Err(why) = msg.channel_id.say(msg.content) {
-            error!("Error ekking {:?}", why);
-          }
+        if let Err(why) = msg.channel_id.say(msg.content) {
+          error!("Error ekking {:?}", why);
         }
       }
-      return
-    }
-    if msg.content == "cage krey" {
-      CAGE_KREY.store(true, Ordering::Relaxed);
-      if let Err(msg_why) = msg.author.dm(|m| m.content(
-        "Krey caged! You have cage access now too, to release use 'release krey' command")) {
-        error!("Failed to cage krey: {:?}", msg_why);
-      }
-      if let Some(guild) = msg.guild_id {
-        if let Ok(mut member) = guild.member(msg.author.id) {
-          if let Ok(partial_guild) = guild.to_partial_guild() {
-            if let Some(role) = partial_guild.role_by_name("krey") {
-              if let Err(msg_why) = member.add_role(role) {
-                error!("Failed to add user to cage: {:?}", msg_why);
-              }
-            }
-          }
-        }
-      }
-    }
-    if msg.content == "release krey" {
-      if msg.author.id != KREY_ID {
-        CAGE_KREY.store(false, Ordering::Relaxed);
-        if let Err(msg_why) = msg.author.dm(|m| m.content(
-          "Krey is released! use 'cage krey' command to cage again")) {
-          error!("Failed to release krey: {:?}", msg_why);
-        }
-        if let Some(guild) = msg.guild_id {
-          if let Ok(mut member) = guild.member(msg.author.id) {
-            if let Ok(partial_guild) = guild.to_partial_guild() {
-              if let Some(role) = partial_guild.role_by_name("krey") {
-                if let Err(msg_why) = member.remove_role(role) {
-                  error!("Failed to remove user from cage: {:?}", msg_why);
+    } else {
+      if SHELL_MODE.load(Ordering::Relaxed) && msg.content.starts_with("~") {
+        if let Ok(data) = DATA.lock() {
+          if let Some(owner) = data.get(&DataField::Owner) {
+            let conf = conf::parse_config();
+            if let Ok(owner_u64) = conf.owner.parse::<u64>() {
+              if msg.author.id.as_u64() == owner && &owner_u64 == owner {
+                if msg.is_private() {
+                  let cmd = &msg.content[1..];
+                  let (_code, stdout, _stderr) = bash!("{}", cmd);
+                  let formatted_out = format!("```\n{}\n```\n", stdout);
+                  if let Err(why) = msg.author.dm(|m| m.content(formatted_out)) {
+                    error!("Error sending dm: {:?}", why);
+                  }
+                } else if let Some(guild_id) = msg.guild_id {
+                  if let Ok(guild_u64) = conf.guild.parse::<u64>() {
+                    if &guild_u64 == guild_id.as_u64() {
+                      let cmd = &msg.content[1..];
+                      let (_code, stdout, _stderr) = bash!("{}", cmd);
+                      let formatted_out = format!("```\n{}\n```\n", stdout);
+                      if let Err(why) = msg.channel_id.say(formatted_out) {
+                        error!("Error sending stdout: {:?}", why);
+                      }
+                    }
+                  }
+                }
+              } else {
+                if let Err(why) = msg.reply("NO SHELL MODE ACCESS!") {
+                  error!("Error in reply with shell mode access error: {:?}", why);
                 }
               }
             }
           }
         }
-      } else {
-        if let Err(msg_why) = &msg.author.dm(|m| m.content(
-          "Sorry but you can't release yourself! You should be able to ask for it in the cage")) {
-          error!("Failed to dm to krey: {:?}", msg_why);
-        }
-      }
-    } else
-    if msg.author.id == KREY_ID && CAGE_KREY.load(Ordering::Relaxed) {
-      if msg.channel_id != CAGE_ID {
-        if let Err(why) = msg.delete() {
-          error!("Error deleting krey msg {:?}", why);
-        }
-        if let Err(msg_why) = msg.author.dm(|m| m.content(
-          "Sorry but you can't write outside the cage, you're caged!")) {
-          error!("Failed to dm to krey: {:?}", msg_why);
-        }
-      }
-    } else {
+      } else
       if let Some(find_char_in_words) = OVERWATCH.into_iter().find(|&c| {
         let regex = format!(r"(^|\W)((?i){}(?-i))($|\W)", c);
         let is_overwatch = Regex::new(regex.as_str()).unwrap();

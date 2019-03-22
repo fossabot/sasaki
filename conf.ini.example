@@ -5,6 +5,8 @@ verbose=true
 
 [Discord]
 token=example.token
+shell_owner=0
+shell_guild=0
 
 [Music]
 rejoin=true

@@ -11,6 +11,7 @@ extern crate rand;
 extern crate regex;
 extern crate serde_json;
 
+#[macro_use] extern crate lazy_static;
 #[macro_use] extern crate log;
 #[macro_use] extern crate serenity;
 #[macro_use] pub mod macros;
@@ -20,6 +21,7 @@ extern crate serde_json;
 
 extern crate curl;
 
+pub mod data;
 pub mod conf;
 pub mod types;
 pub mod db;

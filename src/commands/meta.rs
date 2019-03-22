@@ -22,7 +22,9 @@ command!(help(_ctx, msg) {
   let version = format!("Sasaki {}", env!("CARGO_PKG_VERSION").to_string());
   if let Err(why) = msg.channel_id.send_message(|m| m
     .embed(|e| e
-      .title("My name")
+      .title("Sasaki")
+      .url("https://github.com/cynede/sasaki")
+      .image("https://69.media.tumblr.com/3b44eefaf1c3d4eb236a2ea1f7cf3fb2/tumblr_mjxxdijsyZ1reurhko1_540.png")
       .thumbnail("https://i.pinimg.com/originals/6d/0a/c9/6d0ac96e60b45dc429b224909086f993.jpg")
       .description("佐々木 優太")
       .fields(vec![
@@ -33,11 +35,12 @@ command!(help(_ctx, msg) {
         ("Height", "152 cm", true),
         ("Version", version.as_str(), true)
         ])
-      .field("cage krey", "cages krey (can be used by everyone but no bots)", false)
-      .field("release krey", "releases krey from cage (can be used by everyone except krey)", false)
-      .field("play <url>", "play an radio stream or youtube music", false)
-      .field("ping", "latency check", false)
-      .field("register @user", "register an user or many users into CockroachDB cluster", false)
+      .field("user commands", "ping: latency check", false)
+      .field("music commands", "join: to music channel
+leave: from music channel
+play <url>: play an radio stream or youtube music", false)
+      .field("wheel commands", "register @user: register an user or many users into CockroachDB cluster
+partners: display formatted partners info", false)
       .footer(|f| f.text("proficient in martial arts, extremely cruel"))
       .colour((246, 111, 0)))) {
     error!("Error sending help message: {:?}", why);
@@ -46,7 +49,6 @@ command!(help(_ctx, msg) {
 
 command!(ping(ctx, msg, _args) {
   let data = ctx.data.lock();
-
   let shard_manager = match data.get::<ShardManagerContainer>() {
     Some(v) => v,
     None => {
@@ -56,10 +58,8 @@ command!(ping(ctx, msg, _args) {
       return Ok(());
     },
   };
-
-  let manager = shard_manager.lock();
-  let runners = manager.runners.lock();
-
+  set!( manager = shard_manager.lock()
+      , runners = manager.runners.lock() );
   let runner = match runners.get(&ShardId(ctx.shard_id)) {
     Some(runner) => runner,
     None => {
@@ -69,12 +69,12 @@ command!(ping(ctx, msg, _args) {
       return Ok(());
     },
   };
-
   if let Err(why) = msg.reply(&format!("The shard ping is {:?}", runner.latency)) {
     error!("Error posting ping: {:?}", why);
   }
 });
 
+//TODO: rewrite using https://docs.rs/serenity/0.5.13/serenity/http/raw/index.html
 command!(partners(_ctx, msg) {
   let lines : Vec<&str> = msg.content.lines().collect();
   if let Err(why) = msg.delete() {

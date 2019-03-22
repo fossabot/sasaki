@@ -11,7 +11,9 @@ pub fn write_config(opts : &types::SasakiOptions) {
   conf.with_section(Some("General".to_owned()))
     .set("verbose", if opts.verbose { "true" } else { "false" });
   conf.with_section(Some("Discord".to_owned()))
-    .set("token", opts.discord.as_str());
+    .set("token", opts.discord.as_str())
+    .set("shell_owner", opts.owner.as_str())
+    .set("shell_guild", opts.guild.as_str());
   conf.with_section(Some("Music".to_owned()))
     .set("rejoin", if opts.rejoin { "true" } else { "false" })
     .set("last_guild", opts.last_guild.as_str())
@@ -25,6 +27,8 @@ pub fn parse_config() -> types::SasakiOptions {
     verbose : true,
     rejoin : true,
     discord : String::from(""),
+    owner : String::from(""),
+    guild : String::from(""),
     last_guild : String::from(""),
     last_channel : String::from(""),
     last_stream : String::from("")
@@ -34,6 +38,8 @@ pub fn parse_config() -> types::SasakiOptions {
       .and_then(|conf| Ok({
         options.verbose       = conf["General"]["verbose"] == "true";
         options.discord       = conf["Discord"]["token"].to_owned();
+        options.owner         = conf["Discord"]["shell_owner"].to_owned();
+        options.guild         = conf["Discord"]["shell_guild"].to_owned();
         options.rejoin        = conf["Music"]["rejoin"] == "true";
         options.last_guild    = conf["Music"]["last_guild"].to_owned();
         options.last_channel  = conf["Music"]["last_channel"].to_owned();

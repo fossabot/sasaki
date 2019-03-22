@@ -1,5 +1,6 @@
 use types::SasakiOptions;
 use handler::Handler;
+use data::{DATA, DataField};
 
 use commands;
 use commands::voice::VoiceManager;
@@ -64,6 +65,8 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
   let owners = match http::get_current_application_info() {
     Ok(info) => {
       let mut set = HashSet::new();
+      DATA.lock().unwrap().insert
+        (DataField::Owner, info.owner.id.as_u64().clone());
       set.insert(info.owner.id);
       set
     },
@@ -78,9 +81,13 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
       .case_insensitivity(true))
     .cmd("help", commands::meta::help)
     .cmd("ping", commands::meta::ping)
+    .command("shell", |c| c
+      .cmd(commands::owner::shell)
+      .owners_only(true))
     .command("quit", |c| c
       .cmd(commands::owner::quit)
       .owners_only(true))
+    //TODO: use cockroachDB to store partners
     .command("partners", |c| c
       .cmd(commands::meta::partners)
       .allowed_roles(vec!["wheel"]))
