@@ -141,18 +141,27 @@ impl EventHandler for Handler {
             if let Ok(owner_u64) = conf.owner.parse::<u64>() {
               if msg.author.id.as_u64() == owner && &owner_u64 == owner {
                 if msg.is_private() {
-                  if let Ok(mut sess) = SSH_SESSION.lock() {
-                    let cmd = &msg.content[1..];
-                    let mut channel = sess.channel_session().unwrap();
-                    channel.exec(cmd).unwrap();
-                    let mut s = String::new();
-                    channel.read_to_string(&mut s).unwrap();
-                    let formatted_out = format!("```\n{}\n```\n", s);
-                    if let Err(why) = msg.author.dm(|m| m.content(formatted_out)) {
-                      error!("Error sending dm: {:?}", why);
+                  if let Ok(mut ifsess) = SSH_SESSION.lock() {
+                    if let Some(ref sess) = *ifsess {
+                      let cmd = &msg.content[1..];
+                      match sess.channel_session() {
+                        Ok(mut channel) => {
+                          channel.exec(cmd).unwrap();
+                          let mut s = String::new();
+                          channel.read_to_string(&mut s).unwrap();
+                          let formatted_out = format!("```\n{}\n```\n", s);
+                          if let Err(why) = msg.author.dm(|m| m.content(formatted_out)) {
+                            error!("Error sending dm: {:?}", why);
+                          }
+                          let _ = channel.wait_close();
+                        },
+                        Err(err) => {
+                          if let Err(why) = msg.author.dm(|m| m.content(err)) {
+                            error!("Error sending dm: {:?}", why);
+                          }
+                        }
+                      };
                     }
-                    //let _ = channel.wait_close();
-                    //info!("{}", channel.exit_status().unwrap());
                   }
                 }
               }

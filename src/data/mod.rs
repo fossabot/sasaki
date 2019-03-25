@@ -1,6 +1,7 @@
 use std::sync::atomic::AtomicBool;
 use std::collections::HashMap;
 use std::sync::Mutex;
+use std::net::TcpStream;
 
 use ssh2;
 
@@ -20,7 +21,10 @@ lazy_static! {
 }
 
 lazy_static! {
-  pub static ref SSH_SESSION : Mutex<ssh2::Session> = {
-    Mutex::new(ssh2::Session::new().unwrap())
+  pub static ref SSH_SESSION : Mutex<Option<ssh2::Session>> = {
+    Mutex::new(None)
+  };
+  pub static ref SSH_TCP_STREAM : Mutex<Option<TcpStream>> = {
+    Mutex::new(None)
   };
 }

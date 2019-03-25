@@ -81,6 +81,7 @@ command!(join(ctx, msg) {
     let last_guild_conf = GuildId( conf.last_guild.parse::<u64>().unwrap_or(0) );
     let last_channel_conf = ChannelId( conf.last_channel.parse::<u64>().unwrap_or(0) );
     if last_guild_conf != guild_id || last_channel_conf != connect_to {
+      conf.rejoin = true;
       conf.last_guild = format!("{}", guild_id);
       conf.last_channel = format!("{}", connect_to);
       conf::write_config(&conf);
@@ -88,6 +89,46 @@ command!(join(ctx, msg) {
     dm(msg, &format!("Joined {}", connect_to.mention()));
   } else {
     dm(msg, "Error joining the channel");
+  }
+});
+
+command!(rejoin(ctx, msg) {
+  let guild_id = match CACHE.read().guild_channel(msg.channel_id) {
+    Some(channel) => channel.read().guild_id,
+    None => {
+      dm(msg, "Groups and DMs not supported");
+      return Ok(());
+    },
+  };
+  let mut manager_lock = ctx.data.lock().get::<VoiceManager>().cloned().unwrap();
+  let mut manager = manager_lock.lock();
+  let has_handler = manager.get(guild_id).is_some();
+  if has_handler {
+    manager.remove(guild_id);
+  }
+  let guild = match msg.guild() {
+    Some(guild) => guild,
+    None => {
+      dm(msg, "Groups and DMs not supported");
+      return Ok(());
+    }
+  };
+  let guild_id = guild.read().id;
+  let channel_id = guild
+    .read()
+    .voice_states.get(&msg.author.id)
+    .and_then(|voice_state| voice_state.channel_id);
+  let connect_to = match channel_id {
+    Some(channel) => channel,
+    None => {
+      dm(msg, "You're not in a voice channel");
+      return Ok(());
+    }
+  };
+  let mut manager_lock = ctx.data.lock().get::<VoiceManager>().cloned().unwrap();
+  let mut manager = manager_lock.lock();
+  if manager.join(guild_id, connect_to).is_none() {
+    let _ = msg.reply("failed to rejoin voice channel");
   }
 });
 
@@ -104,9 +145,14 @@ command!(leave(ctx, msg) {
   let has_handler = manager.get(guild_id).is_some();
   if has_handler {
     manager.remove(guild_id);
-    dm(msg, "Left voice channel");
+    dm(msg, "I left voice channel");
+    let mut conf = conf::parse_config();
+    if conf.rejoin {
+      conf.rejoin = false;
+      conf::write_config(&conf);
+    }
   } else {
-    dm(msg, "I'm not in a voice channel");
+    let _ = msg.reply("I'm not in a voice channel");
   }
 });
 
