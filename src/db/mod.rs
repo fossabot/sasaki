@@ -11,7 +11,7 @@ use diesel::prelude::*;
 use diesel::pg::PgConnection;
 
 pub fn establish_connection() -> PgConnection {
-  let database_url = "postgresql://cnd@localhost:26257/sasaki";
+  let database_url = "postgresql://cnd@localhost:26257/sasaki_users";
   PgConnection::establish(&database_url)
     .expect(&format!("Error connecting to {}", database_url))
 }
@@ -20,13 +20,19 @@ pub fn establish_connection() -> PgConnection {
 // 'CREATE TABLE accounts (id bigint PRIMARY KEY, guild bigint, role bigint, mute boolean default false)'
 pub fn register(new_id: i64, new_guild: i64, new_role: i64) -> Option<Account> {
   let connection = establish_connection();
-  let results = accounts
+  let ifresults = accounts
       .filter(id.eq(new_id))
-      .load::<Account>(&connection)
-      .expect("Error loading accounts");
-  if results.len() > 0 {
-    warn!("registration declined, already exists");
-    return None;
+      .load::<Account>(&connection);
+  match ifresults {
+    Ok(results) => {
+      if results.len() > 0 {
+        warn!("registration declined, already exists");
+        return None;
+      }
+    }, Err(error) => {
+      error!("Error loading accounts {:?}", error);
+      return None;
+    }
   }
 
   let new_acc = NewAccount {
@@ -46,29 +52,34 @@ pub fn reset_role(serenity_user_id: UserId, serenity_guild_id: GuildId) -> Optio
   let old_id : i64 = serenity_user_id.as_u64().clone() as i64;
   let old_guild : i64 = serenity_guild_id.as_u64().clone() as i64;
   let connection = establish_connection();
-  let results = accounts
+  let ifresults = accounts
       .filter(id.eq(old_id))
       .filter(guild.eq(old_guild))
-      .load::<Account>(&connection)
-      .expect("Error loading accounts");
-  if results.len() > 0 {
-    warn!("user not found");
-    None
-  } else {
-    let user = &results[0];
-    Some(user.role as u64)
+      .load::<Account>(&connection);
+  match ifresults {
+    Ok(results) => {
+      if results.len() > 0 {
+        warn!("user not found");
+        None
+      } else {
+        let user = &results[0];
+        Some(user.role as u64)
+      }
+    }, Err(error) => {
+      error!("Error loading accounts {:?}", error);
+      None
+    }
   }
 }
 
-pub fn lookup() {
+pub fn lookup() -> String {
   let connection = establish_connection();
   let results = accounts.load::<Account>(&connection)
       .expect("Error loading accounts");
 
-  println!("Displaying {} accounts", results.len());
+  let mut res = format!("{} accounts\n", results.len());
   for acc in results {
-    println!("{}: {}{}", acc.id, acc.guild, if acc.mute { " (muted)" } else { "" });
-    println!("----------\n");
-    println!("{}", acc.role);
+    res = format!("{}{}: {}{} [{}]\n", res, acc.id, acc.guild, if acc.mute { " (muted)" } else { "" }, acc.role);
   }
+  res
 }

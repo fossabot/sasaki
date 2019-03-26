@@ -46,7 +46,7 @@ command!(ssh(_ctx, msg, args) {
                       Ok(_) => {
                         if sess.authenticated() {
                           data::SSH_MODE.store(true, Ordering::Relaxed);
-                          info!("Entering SSH mode!");
+                          info!("Entering SSH mode! (not it's not ideal and a bit buggy atm)");
                           let _ = msg.reply("Entering SSH mode!");
                         } else {
                           let _ = msg.reply("Failed to enter SSH mode");
@@ -107,5 +107,6 @@ command!(shell(_ctx, msg) {
 
 command!(quit(ctx, msg, _args) {
   ctx.quit();
-  let _ = msg.reply("context shutting down!");
+  let _ = msg.reply("Shutting down!");
+  let _ = bash!("killall sasaki");
 });

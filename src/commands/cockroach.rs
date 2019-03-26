@@ -10,6 +10,13 @@ fn dm(msg : &Message, text: &str) {
   }
 }
 
+command!(lookup(_ctx, msg, _args) {
+  let db_data = db::lookup();
+  if let Err(why) = msg.channel_id.say(db_data) {
+    error!("Error sending overwatch reply: {:?}", why);
+  }
+});
+
 command!(register(_ctx, msg, _args) {
   if msg.mentions.len() == 0 {
     dm(msg, "Must mention user");
