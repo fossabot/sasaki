@@ -1,5 +1,5 @@
 use commands::voice;
-use data::{DATA, DataField, SHELL_MODE, SSH_MODE, SSH_SESSION};
+use data::{DATA, DataField, SHELL_MODE, SSH_MODE, SSH_RENTAL};
 use std::sync::atomic::{Ordering};
 use std::io::prelude::*;
 use db;
@@ -141,28 +141,34 @@ impl EventHandler for Handler {
             if let Ok(owner_u64) = conf.owner.parse::<u64>() {
               if msg.author.id.as_u64() == owner && &owner_u64 == owner {
                 if msg.is_private() {
-                  if let Ok(mut ifsess) = SSH_SESSION.lock() {
-                    if let Some(ref sess) = *ifsess {
-                      let cmd = &msg.content[1..];
-                      match sess.channel_session() {
-                        Ok(mut channel) => {
-                          channel.exec(cmd).unwrap();
+                  SSH_RENTAL.with(|ssh_session| {
+                    info!("trying to borrow cell from lazy_static");
+                    match ssh_session.try_borrow_mut() {
+                      Ok(mut borrowed) => {
+                      if let Some(ref mut ssh_session) = *borrowed {
+                        info!("trying to get rentals");
+                        let _ = ssh_session.ref_rent_mut(|iref| {
+                          let cmd = &msg.content[1..];
+                          info!("passing an ssh command");
+                          if let Err(why) = iref.channel.exec(cmd) {
+                            error!("Error executing ssh command: {:?}", why);
+                          }
                           let mut s = String::new();
-                          channel.read_to_string(&mut s).unwrap();
-                          let formatted_out = format!("```\n{}\n```\n", s);
-                          if let Err(why) = msg.author.dm(|m| m.content(formatted_out)) {
-                            error!("Error sending dm: {:?}", why);
+                          if let Err(why) = iref.channel.read_to_string(&mut s) {
+                            error!("Error reading ssh channel output: {:?}", why);
                           }
-                          let _ = channel.wait_close();
-                        },
-                        Err(err) => {
-                          if let Err(why) = msg.author.dm(|m| m.content(err)) {
-                            error!("Error sending dm: {:?}", why);
-                          }
+                          &mut **iref
+                        });
+                      } else {
+                        if let Err(why) = msg.reply("SSHSession is empty!") {
+                          error!("SSHSession is empty! {:?}", why);
                         }
-                      };
+                      }
+                    }, Err(error) => {
+                      error!("Error borrowing lazy_static RefCell: {:?}", error);
                     }
-                  }
+                    }
+                  });
                 }
               }
             }

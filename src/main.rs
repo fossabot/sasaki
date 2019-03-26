@@ -12,6 +12,7 @@ extern crate regex;
 extern crate serde_json;
 extern crate ssh2;
 
+#[macro_use] extern crate rental;
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate log;
 #[macro_use] extern crate serenity;
