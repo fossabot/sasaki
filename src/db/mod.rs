@@ -83,3 +83,7 @@ pub fn lookup() -> String {
   }
   res
 }
+
+pub fn todo() -> String {
+  String::from("TODO")
+}

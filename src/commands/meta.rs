@@ -38,7 +38,6 @@ command!(help(_ctx, msg) {
       .field("user commands", "ping: latency check", false)
       .field("music commands", "join: to music channel
 leave: from music channel
-rejoin: rejoin music channel
 play <url>: play an radio stream or youtube music", false)
       .field("wheel commands", "register @user: register an user or many users into CockroachDB cluster
 partners: display formatted partners info", false)

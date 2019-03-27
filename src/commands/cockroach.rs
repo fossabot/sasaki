@@ -1,11 +1,9 @@
-use common::msg::direct_message;
+use common::msg::{direct_message, channel_message};
 use db;
 
 command!(lookup(_ctx, msg, _args) {
   let db_data = db::lookup();
-  if let Err(why) = msg.channel_id.say(db_data) {
-    error!("Error sending overwatch reply: {:?}", why);
-  }
+  channel_message(&msg, db_data.as_str());
 });
 
 command!(register(_ctx, msg, _args) {
@@ -28,4 +26,9 @@ command!(register(_ctx, msg, _args) {
       }
     }
   }
+});
+
+command!(todo(_ctx, msg, _args) {
+  let db_data = db::todo();
+  channel_message(&msg, db_data.as_str());
 });
