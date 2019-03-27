@@ -11,7 +11,8 @@ use collections::highlighting::HIGHLIGHTING;
 
 use serenity::{
   model::{ event::ResumedEvent, gateway::Ready, guild::Member
-         , channel::Message, id::GuildId
+         , channel::Message, channel::Reaction
+         , id::GuildId
          , event::MessageUpdateEvent },
   prelude::*,
 };
@@ -33,6 +34,54 @@ impl EventHandler for Handler {
   }
   fn resume(&self, _ : Context, _ : ResumedEvent) {
     info!("Resumed");
+  }
+  fn reaction_add(&self, _ctx: Context, add_reaction: Reaction) {
+    let conf = conf::parse_config();
+    if let Ok(roles_msg1) = conf.roles_msg1.parse::<u64>() {
+      if roles_msg1 != 0 {
+        if add_reaction.message_id == roles_msg1 {
+          if let Ok(msg) = add_reaction.message() {
+            if let Some(channel) = msg.channel() {
+              let g = channel.guild().unwrap();
+              let guild = g.read().guild_id;
+              if let Ok(guild) = guild.to_partial_guild() {
+                if let Some(role) = guild.role_by_name("gay") {
+                  if let Ok(mut member) = guild.member(add_reaction.user_id) {
+                    if let Err(why) = member.add_role(role) {
+                      error!("Failed to assign gay role {:?}", why);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  fn reaction_remove(&self, _ctx: Context, add_reaction: Reaction) {
+    let conf = conf::parse_config();
+    if let Ok(roles_msg1) = conf.roles_msg1.parse::<u64>() {
+      if roles_msg1 != 0 {
+        if add_reaction.message_id == roles_msg1 {
+          if let Ok(msg) = add_reaction.message() {
+            if let Some(channel) = msg.channel() {
+              let g = channel.guild().unwrap();
+              let guild = g.read().guild_id;
+              if let Ok(guild) = guild.to_partial_guild() {
+                if let Some(role) = guild.role_by_name("gay") {
+                  if let Ok(mut member) = guild.member(add_reaction.user_id) {
+                    if let Err(why) = member.remove_role(role) {
+                      error!("Failed to assign gay role {:?}", why);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
   fn guild_member_addition(&self, _: Context, guild_id: GuildId, mut member: Member) {
     use serenity::CACHE;

@@ -87,6 +87,7 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
       .cmd("play", commands::voice::play))
     .group("owner", |g| g
       .owners_only(true)
+      .cmd("roles", commands::owner::roles)
       .cmd("shell", commands::owner::shell)
       .cmd("ssh", commands::owner::ssh)
       .cmd("quit", commands::owner::quit)

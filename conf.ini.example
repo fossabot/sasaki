@@ -13,3 +13,6 @@ rejoin=true
 last_guild=
 last_channel=
 last_stream=
+
+[Roles]
+roles_msg1=0

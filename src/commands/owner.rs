@@ -1,9 +1,17 @@
 use common::msg::reply;
 use data;
+use conf;
 
 use std::sync::atomic::{Ordering};
 use std::net::{TcpStream};
 use ssh2;
+
+command!(roles(_ctx, msg, _args) {
+  let mut conf = conf::parse_config();
+  let id_string = format!("{}", msg.id);
+  conf.roles_msg1 = id_string;
+  conf::write_config(&conf);
+});
 
 command!(ssh(_ctx, msg, args) {
   if data::SSH_MODE.load(Ordering::Relaxed) {

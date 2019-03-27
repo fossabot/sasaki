@@ -19,6 +19,8 @@ pub fn write_config(opts : &types::SasakiOptions) {
     .set("last_guild", opts.last_guild.as_str())
     .set("last_channel", opts.last_channel.as_str())
     .set("last_stream", opts.last_stream.as_str());
+    conf.with_section(Some("Roles".to_owned()))
+      .set("roles_msg1", opts.roles_msg1.as_str());
   conf.write_to_file(CONF_FILE_NAME).unwrap();
 }
 
@@ -31,7 +33,8 @@ pub fn parse_config() -> types::SasakiOptions {
     guild : String::from(""),
     last_guild : String::from(""),
     last_channel : String::from(""),
-    last_stream : String::from("")
+    last_stream : String::from(""),
+    roles_msg1 : String::from(""),
   };
   let config_load_status =
     Ini::load_from_file(CONF_FILE_NAME)
@@ -44,6 +47,7 @@ pub fn parse_config() -> types::SasakiOptions {
         options.last_guild    = conf["Music"]["last_guild"].to_owned();
         options.last_channel  = conf["Music"]["last_channel"].to_owned();
         options.last_stream   = conf["Music"]["last_stream"].to_owned();
+        options.roles_msg1    = conf["Roles"]["roles_msg1"].to_owned();
       }));
   if config_load_status.is_err() {
     write_config(&options);
