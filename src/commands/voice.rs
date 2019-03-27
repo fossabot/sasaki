@@ -80,13 +80,15 @@ command!(join(ctx, msg) {
     let mut conf = conf::parse_config();
     let last_guild_conf = GuildId( conf.last_guild.parse::<u64>().unwrap_or(0) );
     let last_channel_conf = ChannelId( conf.last_channel.parse::<u64>().unwrap_or(0) );
-    if last_guild_conf != guild_id || last_channel_conf != connect_to {
+    if last_guild_conf != guild_id || last_channel_conf != connect_to || conf.rejoin == false {
       conf.rejoin = true;
       conf.last_guild = format!("{}", guild_id);
       conf.last_channel = format!("{}", connect_to);
       conf::write_config(&conf);
     }
-    dm(msg, &format!("Joined {}", connect_to.mention()));
+    if let Err(why) = msg.channel_id.say(&format!("I've joined {}", connect_to.mention())) {
+      error!("failed to say joined {:?}", why);
+    }
   } else {
     dm(msg, "Error joining the channel");
   }
@@ -113,7 +115,6 @@ command!(rejoin(ctx, msg) {
       return Ok(());
     }
   };
-  let guild_id = guild.read().id;
   let channel_id = guild
     .read()
     .voice_states.get(&msg.author.id)
@@ -121,7 +122,7 @@ command!(rejoin(ctx, msg) {
   let connect_to = match channel_id {
     Some(channel) => channel,
     None => {
-      dm(msg, "You're not in a voice channel");
+      let _ = msg.channel_id.say("You're not in a voice channel");
       return Ok(());
     }
   };
@@ -145,7 +146,7 @@ command!(leave(ctx, msg) {
   let has_handler = manager.get(guild_id).is_some();
   if has_handler {
     manager.remove(guild_id);
-    dm(msg, "I left voice channel");
+    let _ = msg.channel_id.say("I left voice channel");
     let mut conf = conf::parse_config();
     if conf.rejoin {
       conf.rejoin = false;
@@ -193,7 +194,7 @@ command!(play(ctx, msg, args) {
       conf.last_stream = url;
       conf::write_config(&conf);
     }
-    dm(msg, "Playing stream!");
+    let _ = msg.channel_id.say("Playing stream!");
   } else {
     dm(msg, "Not in a voice channel to play in");
   }

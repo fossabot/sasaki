@@ -6,6 +6,7 @@ use db;
 use conf;
 
 use collections::overwatch::{OVERWATCH, OVERWATCH_REPLIES};
+use collections::highlighting::HIGHLIGHTING;
 
 use serenity::{
   model::{ event::ResumedEvent, gateway::Ready, guild::Member
@@ -87,9 +88,8 @@ impl EventHandler for Handler {
           error!("Failed to Benis {:?}", why);
         }
       }
-      return
-    }
-    if msg.author.bot {
+      return;
+    } else if msg.author.bot {
       // 1 of 3 will be replaced
       let rnd = rand::thread_rng().gen_range(0, 3);
       if rnd == 1 || msg.content == "pong" {
@@ -106,22 +106,41 @@ impl EventHandler for Handler {
           if let Some(owner) = data.get(&DataField::Owner) {
             let conf = conf::parse_config();
             if let Ok(owner_u64) = conf.owner.parse::<u64>() {
+              let cmd = &msg.content[1..];
+              let syntax = if cmd.starts_with("cat ") {
+                if let Some((_, found_syntax)) = HIGHLIGHTING.into_iter().find(|(r, _)| {
+                  match Regex::new(*r) {
+                    Ok(is_an_syntax) => {
+                      is_an_syntax.is_match(cmd) },
+                    Err(error) => {
+                      error!("wrong regex scheme! {} {:?}", r, error);
+                      false
+                    }
+                  }
+                }) { *found_syntax } else {""}
+              } else {""};
               if msg.author.id.as_u64() == owner && &owner_u64 == owner {
                 if msg.is_private() {
                   let cmd = &msg.content[1..];
                   let (_code, stdout, _stderr) = bash!("{}", cmd);
-                  let formatted_out = format!("```\n{}\n```\n", stdout);
+                  let formatted_out = format!("```{}\n{}\n```\n", syntax, stdout);
                   if let Err(why) = msg.author.dm(|m| m.content(formatted_out)) {
                     error!("Error sending dm: {:?}", why);
                   }
                 } else if let Some(guild_id) = msg.guild_id {
                   if let Ok(guild_u64) = conf.guild.parse::<u64>() {
                     if &guild_u64 == guild_id.as_u64() {
-                      let cmd = &msg.content[1..];
-                      let (_code, stdout, _stderr) = bash!("{}", cmd);
-                      let formatted_out = format!("```\n{}\n```\n", stdout);
+                      let (_code, stdout, stderr) = bash!("{}", cmd);
+                      let formatted_out = format!("```{}\n{}\n```\n", syntax, stdout);
+                      info!("{}", formatted_out);
                       if let Err(why) = msg.channel_id.say(formatted_out) {
                         error!("Error sending stdout: {:?}", why);
+                      }
+                      if !stderr.is_empty() {
+                        let formatted_err = format!("```error\n{}\n```\n", stderr);
+                        if let Err(why) = msg.channel_id.say(formatted_err) {
+                          error!("Error sending stdout: {:?}", why);
+                        }
                       }
                     }
                   }
