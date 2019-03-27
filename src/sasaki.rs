@@ -97,7 +97,6 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
     .group("voice commands", |g| g
       .cmd("join", commands::voice::join)
       .cmd("leave", commands::voice::leave)
-      .cmd("rejoin", commands::voice::rejoin)
       .cmd("play", commands::voice::play))
     .group("cockroachDB", |g| g
       .allowed_roles(vec!["wheel"])

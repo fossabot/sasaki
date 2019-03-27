@@ -89,45 +89,6 @@ command!(join(ctx, msg) {
   }
 });
 
-command!(rejoin(ctx, msg) {
-  let guild_id = match CACHE.read().guild_channel(msg.channel_id) {
-    Some(channel) => channel.read().guild_id,
-    None => {
-      direct_message(msg, "Groups and DMs not supported");
-      return Ok(());
-    },
-  };
-  let mut manager_lock = ctx.data.lock().get::<VoiceManager>().cloned().unwrap();
-  let mut manager = manager_lock.lock();
-  let has_handler = manager.get(guild_id).is_some();
-  if has_handler {
-    manager.remove(guild_id);
-  }
-  let guild = match msg.guild() {
-    Some(guild) => guild,
-    None => {
-      direct_message(msg, "Groups and DMs not supported");
-      return Ok(());
-    }
-  };
-  let channel_id = guild
-    .read()
-    .voice_states.get(&msg.author.id)
-    .and_then(|voice_state| voice_state.channel_id);
-  let connect_to = match channel_id {
-    Some(channel) => channel,
-    None => {
-      let _ = msg.channel_id.say("You're not in a voice channel");
-      return Ok(());
-    }
-  };
-  let mut manager_lock = ctx.data.lock().get::<VoiceManager>().cloned().unwrap();
-  let mut manager = manager_lock.lock();
-  if manager.join(guild_id, connect_to).is_none() {
-    reply(&msg, "failed to rejoin voice channel");
-  }
-});
-
 command!(leave(ctx, msg) {
   let guild_id = match CACHE.read().guild_channel(msg.channel_id) {
     Some(channel) => channel.read().guild_id,
