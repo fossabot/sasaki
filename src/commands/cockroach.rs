@@ -1,14 +1,5 @@
+use common::msg::direct_message;
 use db;
-
-use serenity::{
-  model::{ channel::Message }
-};
-
-fn dm(msg : &Message, text: &str) {
-  if let Err(why) = msg.author.dm(|m| m.content(text)) {
-    error!("Error DMing user: {:?}", why);
-  }
-}
 
 command!(lookup(_ctx, msg, _args) {
   let db_data = db::lookup();
@@ -19,7 +10,7 @@ command!(lookup(_ctx, msg, _args) {
 
 command!(register(_ctx, msg, _args) {
   if msg.mentions.len() == 0 {
-    dm(msg, "Must mention user");
+    direct_message(msg, "Must mention user");
     return Ok(());
   }
   for u in &msg.mentions {

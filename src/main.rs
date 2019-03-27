@@ -23,6 +23,7 @@ extern crate ssh2;
 extern crate curl;
 
 pub mod data;
+pub mod common;
 pub mod conf;
 pub mod types;
 pub mod db;

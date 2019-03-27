@@ -1,7 +1,8 @@
+use common::msg::{direct_message, reply};
 use conf;
 
 use serenity::{
-  model::{ channel::Message, misc::Mentionable
+  model::{ misc::Mentionable
          , id::GuildId, id::ChannelId },
   client::{ CACHE, bridge::voice::ClientVoiceManager },
   voice,
@@ -15,12 +16,6 @@ pub struct VoiceManager;
 
 impl Key for VoiceManager {
   type Value = Arc<Mutex<ClientVoiceManager>>;
-}
-
-fn dm(msg : &Message, text: &str) {
-  if let Err(why) = msg.author.dm(|m| m.content(text)) {
-    error!("Error DMing user: {:?}", why);
-  }
 }
 
 pub fn rejoin_voice_channel(ctx : &Context) {
@@ -58,7 +53,7 @@ command!(join(ctx, msg) {
   let guild = match msg.guild() {
     Some(guild) => guild,
     None => {
-      dm(msg, "Groups and DMs not supported");
+      direct_message(msg, "Groups and DMs not supported");
       return Ok(());
     }
   };
@@ -70,7 +65,7 @@ command!(join(ctx, msg) {
   let connect_to = match channel_id {
     Some(channel) => channel,
     None => {
-      dm(msg, "Not in a voice channel");
+      direct_message(msg, "Not in a voice channel");
       return Ok(());
     }
   };
@@ -90,7 +85,7 @@ command!(join(ctx, msg) {
       error!("failed to say joined {:?}", why);
     }
   } else {
-    dm(msg, "Error joining the channel");
+    direct_message(msg, "Error joining the channel");
   }
 });
 
@@ -98,7 +93,7 @@ command!(rejoin(ctx, msg) {
   let guild_id = match CACHE.read().guild_channel(msg.channel_id) {
     Some(channel) => channel.read().guild_id,
     None => {
-      dm(msg, "Groups and DMs not supported");
+      direct_message(msg, "Groups and DMs not supported");
       return Ok(());
     },
   };
@@ -111,7 +106,7 @@ command!(rejoin(ctx, msg) {
   let guild = match msg.guild() {
     Some(guild) => guild,
     None => {
-      dm(msg, "Groups and DMs not supported");
+      direct_message(msg, "Groups and DMs not supported");
       return Ok(());
     }
   };
@@ -129,7 +124,7 @@ command!(rejoin(ctx, msg) {
   let mut manager_lock = ctx.data.lock().get::<VoiceManager>().cloned().unwrap();
   let mut manager = manager_lock.lock();
   if manager.join(guild_id, connect_to).is_none() {
-    let _ = msg.reply("failed to rejoin voice channel");
+    reply(&msg, "failed to rejoin voice channel");
   }
 });
 
@@ -137,7 +132,7 @@ command!(leave(ctx, msg) {
   let guild_id = match CACHE.read().guild_channel(msg.channel_id) {
     Some(channel) => channel.read().guild_id,
     None => {
-      dm(msg, "Groups and DMs not supported");
+      direct_message(msg, "Groups and DMs not supported");
       return Ok(());
     },
   };
@@ -153,7 +148,7 @@ command!(leave(ctx, msg) {
       conf::write_config(&conf);
     }
   } else {
-    let _ = msg.reply("I'm not in a voice channel");
+    reply(&msg, "I'm not in a voice channel");
   }
 });
 
@@ -161,18 +156,18 @@ command!(play(ctx, msg, args) {
   let url = match args.single::<String>() {
     Ok(url) => url,
     Err(_) => {
-      dm(msg, "Must provide a URL to a video or audio");
+      direct_message(msg, "Must provide a URL to a video or audio");
       return Ok(());
     }
   };
   if !url.starts_with("http") {
-    dm(msg, "Must provide a valid URL");
+    direct_message(msg, "Must provide a valid URL");
     return Ok(());
   }
   let guild_id = match CACHE.read().guild_channel(msg.channel_id) {
     Some(channel) => channel.read().guild_id,
     None => {
-      dm(msg, "Error finding channel info");
+      direct_message(msg, "Error finding channel info");
       return Ok(());
     }
   };
@@ -183,7 +178,7 @@ command!(play(ctx, msg, args) {
       Ok(source) => source,
       Err(why) => {
         error!("Err starting source: {:?}", why);
-        dm(msg, "Error sourcing ffmpeg");
+        direct_message(msg, "Error sourcing ffmpeg");
         return Ok(());
       }
     };
@@ -196,6 +191,6 @@ command!(play(ctx, msg, args) {
     }
     let _ = msg.channel_id.say("Playing stream!");
   } else {
-    dm(msg, "Not in a voice channel to play in");
+    direct_message(msg, "Not in a voice channel to play in");
   }
 });

@@ -1,3 +1,4 @@
+use common::msg::{channel_message, reply};
 use commands::voice;
 use data::{DATA, DataField, SHELL_MODE, SSH_MODE, SSH_SESSION};
 use std::sync::atomic::{Ordering};
@@ -76,9 +77,7 @@ impl EventHandler for Handler {
     }
     // wait for new serenity release
     /* that was just a test!
-    if let Err(why) = new_data.channel_id.say("n o  e d i t i n g") {
-      error!("Error sending overwatch reply: {:?}", why);
-    }
+    channel_message("n o  e d i t i n g");
     */
   }
   fn message(&self, _ : Context, mut msg : Message) {
@@ -96,9 +95,7 @@ impl EventHandler for Handler {
         if let Err(why) = msg.delete() {
           error!("Error deleting ekks {:?}", why);
         }
-        if let Err(why) = msg.channel_id.say(msg.content) {
-          error!("Error ekking {:?}", why);
-        }
+        channel_message(&msg, msg.content.as_str());
       }
     } else {
       if SHELL_MODE.load(Ordering::Relaxed) && msg.content.starts_with("~") {
@@ -118,7 +115,8 @@ impl EventHandler for Handler {
                     }
                   }
                 }) { *found_syntax } else {""}
-              } else {""};
+                } else if cmd.starts_with("git diff") { "diff"
+                } else {""};
               if msg.author.id.as_u64() == owner && &owner_u64 == owner {
                 if msg.is_private() {
                   let cmd = &msg.content[1..];
@@ -132,23 +130,16 @@ impl EventHandler for Handler {
                     if &guild_u64 == guild_id.as_u64() {
                       let (_code, stdout, stderr) = bash!("{}", cmd);
                       let formatted_out = format!("```{}\n{}\n```\n", syntax, stdout);
-                      info!("{}", formatted_out);
-                      if let Err(why) = msg.channel_id.say(formatted_out) {
-                        error!("Error sending stdout: {:?}", why);
-                      }
+                      channel_message(&msg, formatted_out.as_str());
                       if !stderr.is_empty() {
                         let formatted_err = format!("```error\n{}\n```\n", stderr);
-                        if let Err(why) = msg.channel_id.say(formatted_err) {
-                          error!("Error sending stdout: {:?}", why);
-                        }
+                        channel_message(&msg, formatted_err.as_str());
                       }
                     }
                   }
                 }
               } else {
-                if let Err(why) = msg.reply("NO SHELL MODE ACCESS!") {
-                  error!("Error in reply with shell mode access error: {:?}", why);
-                }
+                reply(&msg, "NO SHELL MODE ACCESS!");
               }
             }
           }

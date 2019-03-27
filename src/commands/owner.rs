@@ -1,3 +1,4 @@
+use common::msg::reply;
 use data;
 
 use std::sync::atomic::{Ordering};
@@ -8,7 +9,7 @@ command!(ssh(_ctx, msg, args) {
   if data::SSH_MODE.load(Ordering::Relaxed) {
     data::SSH_MODE.store(false, Ordering::Relaxed);
     info!("Leaving SSH mode!");
-    let _ = msg.reply("Leaving SSH mode!");
+    reply(&msg, "Leaving SSH mode!");
     if let Ok(mut ifsess) = data::SSH_SESSION.lock() {
       if let Some(ref sess) = *ifsess {
         let longdescription: String = ::std::iter::repeat('A').take(10).collect();
@@ -32,7 +33,7 @@ command!(ssh(_ctx, msg, args) {
               }
               if ifsess.is_none() {
                 error!("failed to create new ssh session");
-                let _ = msg.reply("failed to create new ssh session");
+                reply(&msg, "failed to create new ssh session");
                 return Ok(());
               }
             }
@@ -47,14 +48,14 @@ command!(ssh(_ctx, msg, args) {
                         if sess.authenticated() {
                           data::SSH_MODE.store(true, Ordering::Relaxed);
                           info!("Entering SSH mode! (not it's not ideal and a bit buggy atm)");
-                          let _ = msg.reply("Entering SSH mode!");
+                          reply(&msg, "Entering SSH mode!");
                         } else {
-                          let _ = msg.reply("Failed to enter SSH mode");
+                          reply(&msg, "Failed to enter SSH mode");
                         }
                       },
                       Err(err) => {
                         let msgToReply = format!("Authentification of user {} failed : {} (pwd: {}))", name, err, password);
-                        let _ = msg.reply(msgToReply.as_str());
+                        reply(&msg, msgToReply.as_str());
                       }
                     };
                   } else {
@@ -63,21 +64,21 @@ command!(ssh(_ctx, msg, args) {
                         if sess.authenticated() {
                           data::SSH_MODE.store(true, Ordering::Relaxed);
                           info!("Entering SSH mode!");
-                          let _ = msg.reply("Entering SSH mode!");
+                          reply(&msg, "Entering SSH mode!");
                         } else {
-                          let _ = msg.reply("Failed to enter SSH mode");
+                          reply(&msg, "Failed to enter SSH mode");
                         }
                       },
                       Err(err) => {
                         let msgToReply = format!("Authentification of user {} failed : {})", name, err);
-                        let _ = msg.reply(msgToReply.as_str());
+                        reply(&msg, msgToReply.as_str());
                       }
                     };
                   }
                 },
                 Err(err) => {
                   let msgToReply = format!("Handshake failed : {}", err);
-                  let _ = msg.reply(msgToReply.as_str());
+                  reply(&msg, msgToReply.as_str());
                 }
               };
               *tcp_stream = Some(tcp);
@@ -85,7 +86,7 @@ command!(ssh(_ctx, msg, args) {
           }
           Err(err) => {
             let msgToReply = format!("Failed to connect {} : {}", address, err);
-            let _ = msg.reply(msgToReply.as_str());
+            reply(&msg, msgToReply.as_str());
           }
         };
       }
@@ -97,16 +98,16 @@ command!(shell(_ctx, msg) {
   if data::SHELL_MODE.load(Ordering::Relaxed) {
     data::SHELL_MODE.store(false, Ordering::Relaxed);
     info!("Leaving shell mode!");
-    let _ = msg.reply("Leaving shell mode!");
+    reply(&msg, "Leaving shell mode!");
   } else {
     data::SHELL_MODE.store(true, Ordering::Relaxed);
     info!("Entering shell mode!");
-    let _ = msg.reply("Entering shell mode!");
+    reply(&msg, "Entering shell mode!");
   }
 });
 
 command!(quit(ctx, msg, _args) {
   ctx.quit();
-  let _ = msg.reply("Shutting down!");
+  reply(&msg, "Shutting down!");
   let _ = bash!("killall sasaki");
 });

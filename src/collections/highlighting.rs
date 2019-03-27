@@ -10,4 +10,5 @@ pub static HIGHLIGHTING: &'static [(&'static str, &'static str)] =
    , (r"(^|\W)([a-zA-Z0-9\s_\\.\-\(\):])+(CmakeList|[.]cmake)($|\W)", "cmake")
    , (r"(^|\W)([a-zA-Z0-9\s_\\.\-\(\):])+[.]fs($|\W)", "fsharp")
    , (r"(^|\W)([a-zA-Z0-9\s_\\.\-\(\):])+[.](sh|bash|zsh|run|ebuild|eclass)($|\W)", "shell")
+   , (r"(^|\W)([a-zA-Z0-9\s_\\.\-\(\):])+[.]patch($|\W)", "diff")
    ];
