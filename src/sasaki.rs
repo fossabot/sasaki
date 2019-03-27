@@ -81,25 +81,18 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
       .case_insensitivity(true))
     .cmd("help", commands::meta::help)
     .cmd("ping", commands::meta::ping)
-    .command("shell", |c| c
-      .cmd(commands::owner::shell)
-      .owners_only(true))
-    .command("ssh", |c| c
-      .cmd(commands::owner::ssh)
-      .owners_only(true))
-    .command("quit", |c| c
-      .cmd(commands::owner::quit)
-      .owners_only(true))
-    //TODO: use cockroachDB to store partners
-    .command("partners", |c| c
-      .cmd(commands::meta::partners)
-      .allowed_roles(vec!["wheel"]))
     .group("voice commands", |g| g
       .cmd("join", commands::voice::join)
       .cmd("leave", commands::voice::leave)
       .cmd("play", commands::voice::play))
+    .group("owner", |g| g
+      .owners_only(true)
+      .cmd("shell", commands::owner::shell)
+      .cmd("ssh", commands::owner::ssh)
+      .cmd("quit", commands::owner::quit)
+      .cmd("partners", commands::meta::partners))
     .group("cockroachDB", |g| g
-      .allowed_roles(vec!["wheel"])
+      .owners_only(true)
       .cmd("todo", commands::cockroach::todo)
       .cmd("lookup", commands::cockroach::lookup)
       .cmd("register", commands::cockroach::register))
