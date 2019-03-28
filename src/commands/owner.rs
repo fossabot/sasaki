@@ -1,4 +1,4 @@
-use common::msg::reply;
+use common::msg::{reply, direct_message};
 use data;
 use conf;
 
@@ -118,4 +118,46 @@ command!(quit(ctx, msg, _args) {
   ctx.quit();
   reply(&msg, "Shutting down!");
   let _ = bash!("killall sasaki");
+});
+
+command!(clear(_context, msg, args) {
+  // Clearing messages from channel; loads list of message, changes into messageid and clears messages
+  if args.len() == 1 {
+    let countdown: u64 = args.find().unwrap_or_default();
+    for vec in msg.channel_id.messages(|g| g.before(msg.id).limit(countdown)) {
+      let mut vec_id = Vec::new();
+      for message in vec {
+        vec_id.push(message.id);
+      }
+      vec_id.push(msg.id);
+      match msg.channel_id.delete_messages(vec_id.as_slice()) {
+        Ok(val)  => val,
+        Err(_err) => (),
+      };
+    }
+    direct_message(&msg, &format!("Deleted {} messages", countdown));
+  }
+  // TODO: In this place command is really slow, making bot lag as a whole. Needs clever fix I haven't thought about yet
+  // Should be deleting <amount of messages> <nth messages where to start deletion from below>
+  else if args.len() == 2 {
+    let countdown: u64 = args.find().unwrap_or_default();
+    let counter: u64 = args.find().unwrap_or_default();
+    let full = countdown + counter;
+    for vec in msg.channel_id.messages(|g| g.before(msg.id).limit(full)) {
+      let mut vec_id = Vec::new();
+      let mut i = 0;
+      for message in vec.iter().rev() {
+        if i < countdown {
+          vec_id.push(message.id);
+        }
+        i += 1;
+      }
+      vec_id.push(msg.id);
+      match msg.channel_id.delete_messages(vec_id.as_slice()) {
+        Ok(val)  => val,
+        Err(_err) => (),
+      };
+    }
+    direct_message(&msg, &format!("Deleted {} messages", countdown));
+  }
 });

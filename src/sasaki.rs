@@ -91,6 +91,7 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
       .cmd("shell", commands::owner::shell)
       .cmd("ssh", commands::owner::ssh)
       .cmd("quit", commands::owner::quit)
+      .cmd("clear_channel", commands::owner::clear)
       .cmd("partners", commands::meta::partners))
     .group("cockroachDB", |g| g
       .owners_only(true)
