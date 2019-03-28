@@ -88,7 +88,8 @@ impl EventHandler for Handler {
     let cache = CACHE.read();
     if let Some(guild) = cache.guild(guild_id) {
       let guild = guild.read();
-      if let Some(role) = db::reset_role(member.user_id(), guild_id) {
+      let roles = db::reset_roles(member.user_id(), guild_id);
+      for role in roles {
         if let Err(why) = member.add_role(role) {
           error!("Failed to reset role for user {:?}", why);
         }

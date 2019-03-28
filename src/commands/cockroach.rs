@@ -16,13 +16,12 @@ command!(register(_ctx, msg, _args) {
     if let Some(guild) = msg.guild_id {
       let guild_id : i64 = guild.as_u64().clone() as i64;
       if let Ok(member) = guild.member(msg.author.id) {
-        let new_role : i64 =
-          if member.roles.len() > 0 {
-            member.roles[0].as_u64().clone() as i64
-          } else {
-            0
-          };
-        db::register(u_id, guild_id, new_role);
+        let mut roles_vector : Vec<i64> = Vec::new();
+        for role in member.roles {
+          roles_vector.push(
+            role.as_u64().clone() as i64);
+        }
+        db::register(u_id, guild_id, &roles_vector);
       }
     }
   }
