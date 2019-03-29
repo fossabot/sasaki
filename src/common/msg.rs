@@ -55,7 +55,7 @@ fn serenity_channel_message_multi2(msg : &Message, texts : Vec<String>) {
   }
 }
 
-fn split_code(text: &str) -> Vec<String> {
+pub fn split_code(text: &str) -> Vec<String> {
   let first_space = text.find(' ').unwrap();
   let first_newline = text.find('\n').unwrap();
   let start_from = if first_space < first_newline { first_space }
@@ -68,7 +68,7 @@ fn split_code(text: &str) -> Vec<String> {
   peaces.map(|s| format!("{}\n{}\n```", starting_pattern, s)).collect()
 }
 
-fn split_message(text: &str) -> Vec<&str> {
+pub fn split_message(text: &str) -> Vec<&str> {
   text.as_bytes()
     .chunks(MESSAGE_LIMIT)
     .map(|s| unsafe { ::std::str::from_utf8_unchecked(s) })

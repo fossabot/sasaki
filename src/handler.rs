@@ -1,12 +1,13 @@
-use common::msg::{channel_message, reply};
+use common::msg::{ channel_message, reply };
+use common::log::{ log };
 use commands::voice;
-use data::{DATA, DataField, SHELL_MODE, SSH_MODE, SSH_SESSION};
-use std::sync::atomic::{Ordering};
+use data::{ DATA, DataField, SHELL_MODE, SSH_MODE, SSH_SESSION };
+use std::sync::atomic::{ Ordering };
 use std::io::prelude::*;
 use db;
 use conf;
 
-use collections::overwatch::{OVERWATCH, OVERWATCH_REPLIES};
+use collections::overwatch::{ OVERWATCH, OVERWATCH_REPLIES };
 use collections::highlighting::HIGHLIGHTING;
 
 use serenity::{
@@ -43,12 +44,14 @@ impl EventHandler for Handler {
           if let Ok(msg) = add_reaction.message() {
             if let Some(channel) = msg.channel() {
               let g = channel.guild().unwrap();
-              let guild = g.read().guild_id;
-              if let Ok(guild) = guild.to_partial_guild() {
+              let guild_id = g.read().guild_id;
+              if let Ok(guild) = guild_id.to_partial_guild() {
                 if let Some(role) = guild.role_by_name("gay") {
                   if let Ok(mut member) = guild.member(add_reaction.user_id) {
                     if let Err(why) = member.add_role(role) {
                       error!("Failed to assign gay role {:?}", why);
+                    } else {
+                      log(&guild_id, &format!("{} is gay now", member));
                     }
                   }
                 }
@@ -67,12 +70,14 @@ impl EventHandler for Handler {
           if let Ok(msg) = add_reaction.message() {
             if let Some(channel) = msg.channel() {
               let g = channel.guild().unwrap();
-              let guild = g.read().guild_id;
-              if let Ok(guild) = guild.to_partial_guild() {
+              let guild_id = g.read().guild_id;
+              if let Ok(guild) = guild_id.to_partial_guild() {
                 if let Some(role) = guild.role_by_name("gay") {
                   if let Ok(mut member) = guild.member(add_reaction.user_id) {
                     if let Err(why) = member.remove_role(role) {
                       error!("Failed to assign gay role {:?}", why);
+                    } else {
+                      log(&guild_id, &format!("{} is not gay anymore", member));
                     }
                   }
                 }
