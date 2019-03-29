@@ -74,7 +74,7 @@ pub fn reset_roles(serenity_user_id: UserId, serenity_guild_id: GuildId) -> Vec<
   let mut result : Vec<u64> = Vec::new();;
   match ifresults {
     Ok(results) => {
-      if results.len() > 0 {
+      if results.len() == 0 {
         warn!("user not found");
       } else {
         let user = &results[0];

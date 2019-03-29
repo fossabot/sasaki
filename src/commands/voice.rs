@@ -114,13 +114,19 @@ command!(leave(ctx, msg) {
 });
 
 command!(play(ctx, msg, args) {
-  let url = match args.single::<String>() {
-    Ok(url) => url,
-    Err(_) => {
-      direct_message(msg, "Must provide a URL to a video or audio");
-      return Ok(());
-    }
-  };
+  let url =
+    if args.len() > 0 {
+      match args.single::<String>() {
+        Ok(url) => url,
+        Err(_) => {
+          direct_message(msg, "Must provide a URL to a video or audio");
+          return Ok(());
+        }
+      }
+    } else {
+      let mut conf = conf::parse_config();
+      conf.last_stream
+    };
   if !url.starts_with("http") {
     direct_message(msg, "Must provide a valid URL");
     return Ok(());
