@@ -57,9 +57,11 @@ fn serenity_channel_message_multi2(msg : &Message, texts : Vec<String>) {
 
 pub fn split_code(text: &str) -> Vec<String> {
   let first_space = text.find(' ').unwrap();
-  let first_newline = text.find('\n').unwrap();
-  let start_from = if first_space < first_newline { first_space }
-                   else { first_newline };
+  let start_from =
+    if let Some(first_newline) = text.find('\n') {
+      if first_space < first_newline { first_space }
+      else { first_newline }
+    } else { first_space };
   let starting_pattern = &text[..start_from];
   let whole_new_text = &text[start_from..text.len()-4];
   let peaces = whole_new_text.as_bytes()

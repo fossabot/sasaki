@@ -35,7 +35,8 @@ command!(help(_ctx, msg) {
         ("Height", "152 cm", true),
         ("Version", version.as_str(), true)
         ])
-      .field("user commands", "ping: latency check", false)
+      .field("user commands", "todo: read todo list
+todo <text>: add <text> to todo list", false)
       .field("music commands", "join: to music channel
 leave: from music channel
 play <url>: play an radio stream or youtube music", false)

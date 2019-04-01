@@ -93,9 +93,11 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
       .cmd("quit", commands::owner::quit)
       .cmd("clear_channel", commands::owner::clear)
       .cmd("partners", commands::meta::partners))
+    .group("public", |g| g
+      .owners_only(true)
+      .cmd("todo", commands::cockroach::todo))
     .group("cockroachDB", |g| g
       .owners_only(true)
-      .cmd("todo", commands::cockroach::todo)
       .cmd("lookup", commands::cockroach::lookup)
       .cmd("register", commands::cockroach::register))
     );

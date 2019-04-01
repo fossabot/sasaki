@@ -1,13 +1,13 @@
 pub mod schema;
 pub mod model;
 
-use serenity::model::id::{UserId, GuildId};
+use serenity::model::id::{ UserId, GuildId };
 
 use self::schema::accounts;
 use self::schema::user_roles;
 use self::schema::todo;
 
-use self::model::{Account, NewAccount, NewUserRole, UserRole, TODO};
+use self::model::{ Account, NewAccount, NewUserRole, UserRole, TODO, NewTODO };
 
 use diesel::prelude::*;
 use diesel::pg::PgConnection;
@@ -105,14 +105,46 @@ pub fn lookup() -> String {
   res
 }
 
-pub fn todo() -> String {
+pub fn todo(user_id: i64) -> String {
   let connection = establish_connection();
-  let results = todo::dsl::todo.load::<TODO>(&connection)
+  let results = todo::dsl::todo
+      .filter(todo::dsl::user_id.eq(user_id))
+      .load::<TODO>(&connection)
       .expect("Error loading todo list");
-
   let mut res = format!("{} items\n", results.len());
+  let mut row_i = 1;
   for i in results {
-    res = format!("{}\n", i.text);
+    res = format!("{}{}. {}\n", res, row_i, i.text);
+    row_i += 1;
   }
   res
+}
+
+pub fn todo_rm(user_id: i64, number : usize) {
+  let connection = establish_connection();
+  let results = todo::dsl::todo
+      .filter(todo::dsl::user_id.eq(user_id))
+      .load::<TODO>(&connection)
+      .expect("Error loading todo list");
+  if number <= results.len() {
+    if let Err(err) =
+      diesel::delete(todo::table)
+        .filter(todo::dsl::id.eq(results[number - 1].id))
+        .execute(&connection) {
+      error!("error removing from TODO list: {:?}", err)
+    }
+  }
+}
+
+pub fn todo_add(user_id: i64, text: String) {
+  let connection = establish_connection();
+    let new_todo = NewTODO {
+      user_id: user_id,
+      text: text
+    };
+    let _na : TODO =
+      diesel::insert_into(todo::table)
+        .values(&new_todo)
+        .get_result(&connection)
+        .expect("Error registering new account");
 }
