@@ -1,7 +1,3 @@
-// cockroach sql --insecure --database=sasaki_users --user=cnd -e 'CREATE TABLE accounts (id bigint PRIMARY KEY, guild bigint, mute boolean default false)'
-// cockroach sql --insecure --database=sasaki_users --user=cnd -e 'CREATE TABLE user_roles (id bigint, role_id bigint, PRIMARY KEY (id, role_id))'
-// cockroach sql --insecure --database=sasaki_users --user=cnd -e 'CREATE TABLE todo (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id bigint, text text, FOREIGN KEY (user_id) REFERENCES accounts (id))'
-
 table! {
   accounts {
     id -> BigInt,
