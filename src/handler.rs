@@ -51,6 +51,14 @@ impl EventHandler for Handler {
                     if let Err(why) = member.add_role(role) {
                       error!("Failed to assign gay role {:?}", why);
                     } else {
+                      let user_i64 = add_reaction.user_id.as_u64().clone() as i64;
+                      let guild_i64 = guild_id.as_u64().clone() as i64;
+                      let mut roles_vector : Vec<i64> = Vec::new();
+                      for role in &member.roles {
+                        roles_vector.push(
+                          role.as_u64().clone() as i64);
+                      }
+                      db::update_member(user_i64, guild_i64, &roles_vector);
                       log(&guild_id, &format!("{} is gay now", member));
                     }
                   }
@@ -77,6 +85,14 @@ impl EventHandler for Handler {
                     if let Err(why) = member.remove_role(role) {
                       error!("Failed to assign gay role {:?}", why);
                     } else {
+                      let user_i64 = add_reaction.user_id.as_u64().clone() as i64;
+                      let guild_i64 = guild_id.as_u64().clone() as i64;
+                      let mut roles_vector : Vec<i64> = Vec::new();
+                      for role in &member.roles {
+                        roles_vector.push(
+                          role.as_u64().clone() as i64);
+                      }
+                      db::update_member(user_i64, guild_i64, &roles_vector);
                       log(&guild_id, &format!("{} is not gay anymore", member));
                     }
                   }

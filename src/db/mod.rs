@@ -63,6 +63,55 @@ pub fn register(new_id: i64, new_guild: i64, new_roles: &Vec<i64>) {
   }
 }
 
+pub fn update_member(user_id: i64, user_guild: i64, user_roles: &Vec<i64>) {
+  let connection = establish_connection();
+  let ifresults = accounts::dsl::accounts
+      .filter(accounts::dsl::id.eq(user_id))
+      .load::<Account>(&connection);
+  match ifresults {
+    Ok(results) => {
+      if results.len() == 0 {
+        let new_acc = NewAccount {
+          id: user_id,
+          guild: user_guild,
+          mute: false
+        };
+        let _na : Account =
+          diesel::insert_into(accounts::table)
+            .values(&new_acc)
+            .get_result(&connection)
+            .expect("Error registering new account");
+      }
+    }, Err(error) => {
+      error!("Error loading accounts {:?}", error);
+    }
+  }
+  if let Err(err) =
+    diesel::delete(user_roles::table)
+      .filter(user_roles::dsl::id.eq(user_id))
+      .execute(&connection) {
+    error!("error removing from user_roles: {:?}", err);
+  }
+  for r in user_roles {
+    if let Ok(ifrole) = user_roles::dsl::user_roles
+        .filter(user_roles::dsl::id.eq(user_id))
+        .filter(user_roles::dsl::role_id.eq(r))
+        .load::<UserRole>(&connection) {
+      if ifrole.len() == 0 {
+        let user_role = NewUserRole {
+          id: user_id,
+          role_id: r.clone()
+        };
+        let _nr : UserRole =
+          diesel::insert_into(user_roles::table)
+            .values(&user_role)
+            .get_result(&connection)
+            .expect("Error registering new account roles");
+      }
+    }
+  }
+}
+
 pub fn reset_roles(serenity_user_id: UserId, serenity_guild_id: GuildId) -> Vec<u64> {
   let old_id : i64 = serenity_user_id.as_u64().clone() as i64;
   let old_guild : i64 = serenity_guild_id.as_u64().clone() as i64;

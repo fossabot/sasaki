@@ -36,6 +36,7 @@ command!(help(_ctx, msg) {
         ("Version", version.as_str(), true)
         ])
       .field("user commands", "todo: read todo list
+todo rm <number>: removes an row from todo list by number
 todo <text>: add <text> to todo list", false)
       .field("music commands", "join: to music channel
 leave: from music channel
