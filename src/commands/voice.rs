@@ -149,7 +149,7 @@ command!(play(ctx, msg, args) {
         return Ok(());
       }
     };
-    handler.play(source);
+    handler.play_only(source);
     let mut conf = conf::parse_config();
     let last_stream_conf = conf.last_stream;
     if last_stream_conf != url {
