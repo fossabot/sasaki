@@ -19,7 +19,7 @@ use std::io::prelude::*;
 use serenity::{
   model::{ event::ResumedEvent, gateway::Ready, guild::Member
          , channel::Message, channel::Reaction
-         , id::GuildId
+         , id::GuildId, user::User
          , event::MessageUpdateEvent },
   prelude::*,
 };
@@ -134,12 +134,37 @@ impl EventHandler for Handler {
             .embed(|e| {
               let mut e = e
                 .author(|a| a.icon_url(&user.face()).name(&user.name))
-                .title("has joined!");
+                .title("has joined to this place...");
               if let Some(ref joined_at) = member.joined_at {
                 e = e.timestamp(joined_at);
               } e
           })) {
             error!("Failed to log new user {:?}", why);
+          }
+        }
+      }
+    }
+  }
+  fn guild_member_removal(&self, _: Context, guild_id: GuildId, user : User, _ : Option<Member>) {
+    use serenity::CACHE;
+    let cache = CACHE.read();
+    if let Some(guild) = cache.guild(guild_id) {
+      let guild = guild.read();
+      if let Ok(channels) = guild.channels() {
+        let log_channel = channels.iter().find(|&(c, _)|
+          if let Some(name) = c.name() {
+            name == "log"
+          } else {
+            false
+          });
+        if let Some((_, channel)) = log_channel {
+          if let Err(why) = channel.send_message(|m| m
+            .embed(|e| {
+              e.author(|a| a.icon_url(&user.face()).name(&user.name))
+               .title("has left this place...")
+               .timestamp(chrono::Utc::now().to_rfc3339())
+              })) {
+            error!("Failed to log leaving user {:?}", why);
           }
         }
       }
