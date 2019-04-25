@@ -41,8 +41,6 @@ todo <text>: add <text> to todo list", false)
       .field("music commands", "join: to music channel
 leave: from music channel
 play <url>: play an radio stream or youtube music", false)
-      .field("wheel commands", "register @user: register an user or many users into CockroachDB cluster
-partners: display formatted partners info", false)
       .footer(|f| f.text("proficient in martial arts, extremely cruel"))
       .colour((246, 111, 0)))) {
     error!("Error sending help message: {:?}", why);

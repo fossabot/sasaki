@@ -67,7 +67,7 @@ command!(join(ctx, msg) {
   let connect_to = match channel_id {
     Some(channel) => channel,
     None => {
-      direct_message(msg, "Not in a voice channel");
+      reply(msg, "You're not in a voice channel");
       return Ok(());
     }
   };
@@ -87,7 +87,7 @@ command!(join(ctx, msg) {
       error!("failed to say joined {:?}", why);
     }
   } else {
-    direct_message(msg, "Error joining the channel");
+    direct_message(msg, "Some error joining the channel...");
   }
 });
 
@@ -121,7 +121,7 @@ command!(play(ctx, msg, args) {
       match args.single::<String>() {
         Ok(url) => url,
         Err(_) => {
-          direct_message(msg, "Must provide a URL to a video or audio");
+          reply(msg, "You must provide a URL to a video or audio");
           return Ok(());
         }
       }
@@ -130,13 +130,13 @@ command!(play(ctx, msg, args) {
       conf.last_stream
     };
   if !url.starts_with("http") {
-    direct_message(msg, "Must provide a valid URL");
+    reply(msg, "You must provide a valid URL");
     return Ok(());
   }
   let guild_id = match CACHE.read().guild_channel(msg.channel_id) {
     Some(channel) => channel.read().guild_id,
     None => {
-      direct_message(msg, "Error finding channel info");
+      reply(msg, "Error finding channel info...");
       return Ok(());
     }
   };
@@ -147,7 +147,7 @@ command!(play(ctx, msg, args) {
       Ok(source) => source,
       Err(why) => {
         error!("Err starting source: {:?}", why);
-        direct_message(msg, "Error sourcing ffmpeg");
+        reply(msg, &format!("Sorry, error sourcing ffmpeg {:?}", why));
         return Ok(());
       }
     };
@@ -155,11 +155,11 @@ command!(play(ctx, msg, args) {
     let mut conf = conf::parse_config();
     let last_stream_conf = conf.last_stream;
     if last_stream_conf != url {
-      conf.last_stream = url;
+      conf.last_stream = url.clone();
       conf::write_config(&conf);
     }
-    let _ = msg.channel_id.say("Playing stream!");
+    reply(msg, &format!("playing stream: {}", url));
   } else {
-    direct_message(msg, "Not in a voice channel to play in");
+    reply(msg, "Not in a voice channel to play in...");
   }
 });
