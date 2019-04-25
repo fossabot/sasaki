@@ -1,14 +1,20 @@
-use common::msg::{ channel_message, reply };
-use common::log::{ log };
-use commands::voice;
-use data::{ DATA, DataField, SHELL_MODE, SSH_MODE, SSH_SESSION };
+use crate::{
+  common::{
+    msg::{ channel_message, reply },
+    log::{ log }
+  },
+  commands::voice,
+  data::{ DATA, DataField, SHELL_MODE, SSH_MODE, SSH_SESSION },
+  db,
+  conf,
+  collections::{
+    overwatch::{ OVERWATCH, OVERWATCH_REPLIES },
+    highlighting::HIGHLIGHTING
+  }
+};
+
 use std::sync::atomic::{ Ordering };
 use std::io::prelude::*;
-use db;
-use conf;
-
-use collections::overwatch::{ OVERWATCH, OVERWATCH_REPLIES };
-use collections::highlighting::HIGHLIGHTING;
 
 use serenity::{
   model::{ event::ResumedEvent, gateway::Ready, guild::Member
@@ -160,13 +166,21 @@ impl EventHandler for Handler {
       }
       return;
     } else if msg.author.bot {
-      // 1 of 3 will be replaced
-      let rnd = rand::thread_rng().gen_range(0, 3);
-      if rnd == 1 || msg.content == "pong" {
-        if let Err(why) = msg.delete() {
-          error!("Error deleting ekks {:?}", why);
+      // only on own server
+      if let Some(guild_id) = msg.guild_id {
+        let conf = conf::parse_config();
+        if let Ok(guild_u64) = conf.guild.parse::<u64>() {
+          if &guild_u64 == guild_id.as_u64() {
+            // 1 of 3 will be replaced
+            let rnd = rand::thread_rng().gen_range(0, 3);
+            if rnd == 1 || msg.content == "pong" {
+              if let Err(why) = msg.delete() {
+                error!("Error deleting ekks {:?}", why);
+              }
+              channel_message(&msg, msg.content.as_str());
+            }
+          }
         }
-        channel_message(&msg, msg.content.as_str());
       }
     } else {
       if SHELL_MODE.load(Ordering::Relaxed) && msg.content.starts_with("~") {
@@ -222,7 +236,7 @@ impl EventHandler for Handler {
             if let Ok(owner_u64) = conf.owner.parse::<u64>() {
               if msg.author.id.as_u64() == owner && &owner_u64 == owner {
                 if msg.is_private() {
-                  if let Ok(mut ifsess) = SSH_SESSION.lock() {
+                  if let Ok(ifsess) = SSH_SESSION.lock() {
                     if let Some(ref sess) = *ifsess {
                       let cmd = &msg.content[1..];
                       match sess.channel_session() {

@@ -1,5 +1,7 @@
-use common::msg::{direct_message, reply};
-use conf;
+use crate::{
+  common::msg::{ direct_message, reply },
+  conf
+};
 
 use serenity::{
   model::{ misc::Mentionable

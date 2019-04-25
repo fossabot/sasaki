@@ -1,4 +1,4 @@
-use common::msg::{ split_code, split_message, MESSAGE_LIMIT };
+use crate::common::msg::{ split_code, split_message, MESSAGE_LIMIT };
 
 use serenity::{
   builder::CreateMessage,

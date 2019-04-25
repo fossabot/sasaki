@@ -1,6 +1,8 @@
-use common::msg::{reply, direct_message};
-use data;
-use conf;
+use crate::{
+  common::msg::{reply, direct_message},
+  data,
+  conf
+};
 
 use std::sync::atomic::{Ordering};
 use std::net::{TcpStream};

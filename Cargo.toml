@@ -1,10 +1,11 @@
 [package]
 name = "sasaki"
-version = "0.2.8"
+version = "0.3.0"
 authors = [ "Cynede <codecaves@gmail.com>" ]
 repository = "https://github.com/Cynede/sasaki"
 readme = "README.md"
 keywords = [ "discord", "bot" ]
+edition = "2018"
 
 [dependencies]
 rand = "*"

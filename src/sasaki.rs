@@ -1,13 +1,16 @@
-use types::SasakiOptions;
-use handler::Handler;
-use data::{DATA, DataField};
+use crate::{
+  types::SasakiOptions,
+  handler::Handler,
+  data::{ DATA, DataField },
+  commands,
+  commands::voice::VoiceManager,
+  commands::meta::ShardManagerContainer
+};
 
-use commands;
-use commands::voice::VoiceManager;
-use commands::meta::ShardManagerContainer;
-
-use argparse::{ArgumentParser, StoreTrue};
-use argparse::action::{IFlagAction, ParseResult};
+use argparse::{
+  { ArgumentParser, StoreTrue },
+  action::{IFlagAction, ParseResult}
+};
 
 use env_logger::Env;
 

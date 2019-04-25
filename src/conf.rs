@@ -1,6 +1,6 @@
 const CONF_FILE_NAME: &'static str = "conf.ini";
 
-use types;
+use crate::types;
 
 use ini::Ini;
 

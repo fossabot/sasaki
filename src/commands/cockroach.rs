@@ -1,5 +1,7 @@
-use common::msg::{ direct_message, channel_message, reply };
-use db;
+use crate::{
+  common::msg::{ direct_message, channel_message, reply },
+  db
+};
 
 command!(lookup(_ctx, msg, _args) {
   let db_data = db::lookup();
