@@ -101,8 +101,7 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
       .owners_only(true))
     .command("ssh", |c| c
       .cmd(commands::owner::ssh)
-      .owners_only(true)
-      .allowed_roles(vec!["wheel"]))
+      .owners_only(true))
     .command("quit", |c| c
       .cmd(commands::owner::quit)
       .owners_only(true))
