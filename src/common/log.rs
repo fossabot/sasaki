@@ -6,21 +6,16 @@ use serenity::{
 };
 
 pub fn log_any<F: FnOnce(CreateMessage) -> CreateMessage>(guild_id: &GuildId, f: F) {
-  use serenity::CACHE;
-  let cache = CACHE.read();
-  if let Some(guild_lock) = cache.guild(guild_id) {
-    let guild = guild_lock.read();
-    if let Ok(channels) = guild.channels() {
-      let log_channel = channels.iter().find(|&(c, _)|
-        if let Some(name) = c.name() {
-          name == "log"
-        } else {
-          false
-        });
-      if let Some((_, channel)) = log_channel {
-        if let Err(why) = channel.send_message(f) {
-          error!("Failed to log new user {:?}", why);
-        }
+  if let Ok(channels) = guild_id.channels() {
+    let log_channel = channels.iter().find(|&(c, _)|
+      if let Some(name) = c.name() {
+        name == "log"
+      } else {
+        false
+      });
+    if let Some((_, channel)) = log_channel {
+      if let Err(why) = channel.send_message(f) {
+        error!("Failed to log new user {:?}", why);
       }
     }
   }
@@ -54,20 +49,15 @@ fn channel_message(chan : &GuildChannel, text: &str) {
 }
 
 pub fn log(guild_id: &GuildId, text: &str) {
-  use serenity::CACHE;
-  let cache = CACHE.read();
-  if let Some(guild_lock) = cache.guild(guild_id) {
-    let guild = guild_lock.read();
-    if let Ok(channels) = guild.channels() {
-      let log_channel = channels.iter().find(|&(c, _)|
-        if let Some(name) = c.name() {
-          name == "log"
-        } else {
-          false
-        });
-      if let Some((_, channel)) = log_channel {
-        channel_message(channel, text);
-      }
+  if let Ok(channels) = guild_id.channels() {
+    let log_channel = channels.iter().find(|&(c, _)|
+      if let Some(name) = c.name() {
+        name == "log"
+      } else {
+        false
+      });
+    if let Some((_, channel)) = log_channel {
+      channel_message(channel, text);
     }
   }
 }
