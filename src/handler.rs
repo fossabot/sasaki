@@ -111,61 +111,51 @@ impl EventHandler for Handler {
     }
   }
   fn guild_member_addition(&self, _: Context, guild_id: GuildId, mut member: Member) {
-    use serenity::CACHE;
-    let cache = CACHE.read();
-    if let Some(guild) = cache.guild(guild_id) {
-      let guild = guild.read();
-      let roles = db::reset_roles(member.user_id(), guild_id);
-      for role in roles {
-        if let Err(why) = member.add_role(role) {
-          error!("Failed to reset role for user {:?}", why);
-        }
+    let roles = db::reset_roles(member.user_id(), guild_id);
+    for role in roles {
+      if let Err(why) = member.add_role(role) {
+        error!("Failed to reset role for user {:?}", why);
       }
-      if let Ok(channels) = guild.channels() {
-        let log_channel = channels.iter().find(|&(c, _)|
-          if let Some(name) = c.name() {
-            name == "log"
-          } else {
-            false
-          });
-        if let Some((_, channel)) = log_channel {
-          let user = member.user.read();
-          if let Err(why) = channel.send_message(|m| m
-            .embed(|e| {
-              let mut e = e
-                .author(|a| a.icon_url(&user.face()).name(&user.name))
-                .title("has joined to this place...");
-              if let Some(ref joined_at) = member.joined_at {
-                e = e.timestamp(joined_at);
-              } e
-          })) {
-            error!("Failed to log new user {:?}", why);
-          }
+    }
+    if let Ok(channels) = guild_id.channels() {
+      let log_channel = channels.iter().find(|&(c, _)|
+        if let Some(name) = c.name() {
+          name == "log"
+        } else {
+          false
+        });
+      if let Some((_, channel)) = log_channel {
+        let user = member.user.read();
+        if let Err(why) = channel.send_message(|m| m
+          .embed(|e| {
+            let mut e = e
+              .author(|a| a.icon_url(&user.face()).name(&user.name))
+              .title("has joined to this place...");
+            if let Some(ref joined_at) = member.joined_at {
+              e = e.timestamp(joined_at);
+            } e
+        })) {
+          error!("Failed to log new user {:?}", why);
         }
       }
     }
   }
   fn guild_member_removal(&self, _: Context, guild_id: GuildId, user : User, _ : Option<Member>) {
-    use serenity::CACHE;
-    let cache = CACHE.read();
-    if let Some(guild) = cache.guild(guild_id) {
-      let guild = guild.read();
-      if let Ok(channels) = guild.channels() {
-        let log_channel = channels.iter().find(|&(c, _)|
-          if let Some(name) = c.name() {
-            name == "log"
-          } else {
-            false
-          });
-        if let Some((_, channel)) = log_channel {
-          if let Err(why) = channel.send_message(|m| m
-            .embed(|e| {
-              e.author(|a| a.icon_url(&user.face()).name(&user.name))
-               .title("has left this place...")
-               .timestamp(chrono::Utc::now().to_rfc3339())
-              })) {
-            error!("Failed to log leaving user {:?}", why);
-          }
+    if let Ok(channels) = guild_id.channels() {
+      let log_channel = channels.iter().find(|&(c, _)|
+        if let Some(name) = c.name() {
+          name == "log"
+        } else {
+          false
+        });
+      if let Some((_, channel)) = log_channel {
+        if let Err(why) = channel.send_message(|m| m
+          .embed(|e| {
+            e.author(|a| a.icon_url(&user.face()).name(&user.name))
+              .title("has left this place...")
+              .timestamp(chrono::Utc::now().to_rfc3339())
+            })) {
+          error!("Failed to log leaving user {:?}", why);
         }
       }
     }

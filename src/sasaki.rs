@@ -82,26 +82,44 @@ pub fn run(opts : &mut SasakiOptions) -> Result<(), serenity::Error> {
       .on_mention(true)
       .prefix("`")
       .case_insensitivity(true))
+
     .cmd("help", commands::meta::help)
     .cmd("ping", commands::meta::ping)
+
     .group("voice commands", |g| g
       .cmd("join", commands::voice::join)
       .cmd("leave", commands::voice::leave)
       .cmd("play", commands::voice::play))
-    .group("owner", |g| g
-      .owners_only(true)
-      .cmd("roles", commands::owner::roles)
-      .cmd("shell", commands::owner::shell)
-      .cmd("ssh", commands::owner::ssh)
-      .cmd("quit", commands::owner::quit)
-      .cmd("clear_channel", commands::owner::clear)
-      .cmd("partners", commands::meta::partners))
     .group("public", |g| g
       .cmd("todo", commands::cockroach::todo))
-    .group("cockroachDB", |g| g
+
+    .command("roles", |c| c
+      .cmd(commands::owner::roles)
+      .owners_only(true))
+    .command("shell", |c| c
+      .cmd(commands::owner::shell)
+      .owners_only(true))
+    .command("ssh", |c| c
+      .cmd(commands::owner::ssh)
       .owners_only(true)
-      .cmd("lookup", commands::cockroach::lookup)
-      .cmd("register", commands::cockroach::register))
+      .allowed_roles(vec!["wheel"]))
+    .command("quit", |c| c
+      .cmd(commands::owner::quit)
+      .owners_only(true))
+    .command("clear_channel", |c| c
+      .cmd(commands::owner::clear)
+      .owners_only(true))
+    .command("partners", |c| c
+      .cmd(commands::meta::partners)
+      .owners_only(true))
+
+    .command("lookup", |c| c
+      .cmd(commands::cockroach::lookup)
+      .owners_only(true)
+      .allowed_roles(vec!["wheel"]))
+    .command("register", |c| c
+      .cmd(commands::cockroach::register)
+      .owners_only(true))
     );
 
   client.start()
