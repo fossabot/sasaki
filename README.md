@@ -1,6 +1,7 @@
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/cynede/sasaki.svg)](http://isitmaintained.com/project/cynede/sasaki "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/cynede/sasaki.svg)](http://isitmaintained.com/project/cynede/sasaki "Percentage of issues still open")
 [![Gentoo discord server](https://img.shields.io/discord/545563271017791488.svg?style=flat-square&label=Cynede)](https://discord.gg/rKZfynu)
+[![Build Status](https://travis-ci.org/cynede/sasaki.svg?branch=master)](https://travis-ci.org/cynede/sasaki)
 
 Sasaki the stupid bot
 ---------------------
