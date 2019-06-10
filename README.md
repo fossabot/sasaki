@@ -2,6 +2,7 @@
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/cynede/sasaki.svg)](http://isitmaintained.com/project/cynede/sasaki "Percentage of issues still open")
 [![Gentoo discord server](https://img.shields.io/discord/545563271017791488.svg?style=flat-square&label=Cynede)](https://discord.gg/rKZfynu)
 [![Build Status](https://travis-ci.org/cynede/sasaki.svg?branch=master)](https://travis-ci.org/cynede/sasaki)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fcynede%2Fsasaki.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fcynede%2Fsasaki?ref=badge_shield)
 
 Sasaki the stupid bot
 ---------------------
@@ -27,3 +28,7 @@ cockroach sql --insecure --database=sasaki_users --user=cnd -e 'CREATE TABLE acc
 cockroach sql --insecure --database=sasaki_users --user=cnd -e 'CREATE TABLE user_roles (id bigint, role_id bigint, PRIMARY KEY (id, role_id))'
 cockroach sql --insecure --database=sasaki_users --user=cnd -e 'CREATE TABLE todo (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id bigint, text text, FOREIGN KEY (user_id) REFERENCES accounts (id))'
 ```
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fcynede%2Fsasaki.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fcynede%2Fsasaki?ref=badge_large)
