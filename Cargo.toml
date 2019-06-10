@@ -27,7 +27,7 @@ serenity = { version = "0.5.14", features = ["cache", "framework", "standard_fra
 
 [dependencies.dotenv]
 features = []
-version = "0.10.1"
+version = "0.14.1"
 
 [dependencies.diesel_codegen]
 features = ["postgres"]
